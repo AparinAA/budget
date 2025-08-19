@@ -1,0 +1,36 @@
+.categoryItem {
+	display: grid;
+	gap: 8px;
+}
+.topRow {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.nameRow {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 999px;
+}
+.progress {
+	height: 10px;
+	background: #0b1420;
+	border: 1px solid #1f2a37;
+	border-radius: 8px;
+	overflow: hidden;
+}
+.progressFill {
+	height: 100%;
+}
+.percentRow {
+	display: flex;
+	gap: 8px;
+	margin-top: 6px;
+	align-items: center;
+}

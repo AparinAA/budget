@@ -1,0 +1,4 @@
+{
+	"name": "family-budget",
+	"node": ">=18.17.0"
+}

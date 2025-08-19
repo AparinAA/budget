@@ -1,0 +1,110 @@
+// Prisma schema for Family Budget app
+// Uses PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // Basic auth fields
+  email     String?  @unique
+  passwordHash String?
+  sessions  Session[]
+  budgets Budget[]
+  monthlyStats MonthlyBudgetStats[]
+  savingsTransfers SavingsTransfer[]
+}
+
+model Budget {
+  id        String      @id @default(cuid())
+  month     Int
+  year      Int
+  income    Int          // store in minor units (cents)
+  currencyCode String    @default("RUB") // ISO 4217 code
+  user      User         @relation(fields: [userId], references: [id])
+  userId    String
+  categories Category[]
+  expenses   Expense[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, month, year])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  percent   Float    // 0..100
+  isSaving  Boolean  @default(false)
+  budget    Budget   @relation(fields: [budgetId], references: [id])
+  budgetId  String
+  expenses  Expense[]
+  savingsTransfers SavingsTransfer[]
+  // Rollover of leftovers into a target saving category
+  rolloverEnabled Boolean   @default(false)
+  rolloverTargetId String?
+  rolloverTarget   Category? @relation("CategoryRollover", fields: [rolloverTargetId], references: [id])
+  rolloverSources  Category[] @relation("CategoryRollover")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([budgetId, name])
+}
+
+model Expense {
+  id         String   @id @default(cuid())
+  amount     Int      // in cents
+  note       String?
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String
+  budget     Budget   @relation(fields: [budgetId], references: [id])
+  budgetId   String
+  createdAt  DateTime @default(now())
+}
+
+model MonthlyBudgetStats {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  month      Int
+  year       Int
+  totalIncome   Int
+  totalExpenses Int
+  currencyCode  String @default("RUB")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, month, year])
+}
+
+model SavingsTransfer {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  month       Int
+  year        Int
+  amount      Int      // in cents, amount moved to savings for the month
+  currencyCode String  @default("RUB")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, year, month, categoryId])
+}
+
+model Session {
+  token    String   @id
+  user     User     @relation(fields: [userId], references: [id])
+  userId   String
+  expires  DateTime
+  createdAt DateTime @default(now())
+}

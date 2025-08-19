@@ -1,0 +1,90 @@
+.card {
+	background: #0f1621;
+	border: 1px solid #1f2a37;
+	border-radius: 12px;
+	padding: 16px;
+}
+
+.cardTitle {
+	margin-bottom: 8px;
+	font-weight: 600;
+}
+
+.input {
+	background: #0b1420;
+	border: 1px solid #1f2a37;
+	color: #e6edf3;
+	padding: 8px 10px;
+	border-radius: 8px;
+}
+
+.button {
+	background: #1f2a37;
+	color: #e6edf3;
+	border: 1px solid #2a3a4a;
+	padding: 8px 12px;
+	border-radius: 8px;
+	cursor: pointer;
+}
+
+.buttonSecondary {
+	background: #2b3947;
+}
+
+.row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.rowLg {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.mlAuto {
+	margin-left: auto;
+}
+
+.label {
+	font-size: 14px;
+	color: #9fb3c8;
+}
+.muted {
+	color: #9fb3c8;
+}
+
+.tableWrap {
+	overflow-x: auto;
+}
+.table {
+	width: 100%;
+	border-collapse: collapse;
+}
+.tableHead {
+	color: #9fb3c8;
+	font-size: 14px;
+}
+.td {
+	padding: 8px;
+}
+.theadTh {
+	padding: 8px;
+}
+.empty {
+	color: #9fb3c8;
+	text-align: center;
+	padding: 12px;
+}
+.tr {
+	color: #e6edf3;
+	font-size: 15px;
+}
+.trClickable {
+	color: #e6edf3;
+	font-size: 15px;
+	cursor: pointer;
+}
