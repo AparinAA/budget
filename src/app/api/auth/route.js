@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
-import {
-	login,
-	register,
-	logout,
-	getCurrentUser,
-} from "@/features/auth/server";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
+	const { getCurrentUser } = await import("@/features/auth/server");
 	const user = await getCurrentUser();
 	return NextResponse.json(user ? { id: user.id, email: user.email } : null);
 }
@@ -17,11 +13,19 @@ export async function POST(req) {
 	try {
 		switch (action) {
 			case "login":
-				return NextResponse.json(await login(payload));
+				return NextResponse.json(
+					await (
+						await import("@/features/auth/server")
+					).login(payload)
+				);
 			case "register":
-				return NextResponse.json(await register(payload));
+				return NextResponse.json(
+					await (
+						await import("@/features/auth/server")
+					).register(payload)
+				);
 			case "logout":
-				await logout();
+				await (await import("@/features/auth/server")).logout();
 				return NextResponse.json({ ok: true });
 			default:
 				return NextResponse.json(

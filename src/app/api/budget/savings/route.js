@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSavingsSummary } from "@/features/budget/server";
 import { requireUserId } from "@/shared/auth/session";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
 	try {
