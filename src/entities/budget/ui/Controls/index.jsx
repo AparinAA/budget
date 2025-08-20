@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import kit from "@/shared/ui/kit.module.css";
 import { useBudgetStore } from "@/shared/store/budgetStore";
 import { postAction } from "@/shared/api/budget";
@@ -12,6 +12,7 @@ export function Controls({ onAfterChange, totalRemaining }) {
 		currency: currencyCode,
 		categories,
 		setSnapshot,
+		ownerId,
 	} = useBudgetStore();
 	const [incomeRub, setIncomeRub] = useState("");
 	const [newCat, setNewCat] = useState({ name: "", percent: "" });
@@ -29,6 +30,7 @@ export function Controls({ onAfterChange, totalRemaining }) {
 			month,
 			name: newCat.name,
 			percent: Number(newCat.percent) || 0,
+			ownerId: ownerId || null,
 		})
 			.then((snap) => {
 				setSnapshot(snap);
@@ -47,6 +49,7 @@ export function Controls({ onAfterChange, totalRemaining }) {
 			month,
 			categoryId: expense.catId,
 			amount: amountCents,
+			ownerId: ownerId || null,
 		})
 			.then((snap) => {
 				setSnapshot(snap);
@@ -56,16 +59,27 @@ export function Controls({ onAfterChange, totalRemaining }) {
 			.catch(() => {});
 	}
 
+	const incomeTimerRef = useRef(null);
+	const incomeAbortRef = useRef(null);
 	function handleSetIncome(e) {
 		const v = e.target.value;
 		setIncomeRub(v);
 		const cents = Math.max(0, Math.floor(Number(v || 0) * 100));
-		postAction("setIncome", { year, month, income: cents })
-			.then((snap) => {
-				setSnapshot(snap);
-				onAfterChange?.();
-			})
-			.catch(() => {});
+		if (incomeTimerRef.current) clearTimeout(incomeTimerRef.current);
+		if (incomeAbortRef.current) incomeAbortRef.current.abort();
+		const controller = new AbortController();
+		incomeAbortRef.current = controller;
+		incomeTimerRef.current = setTimeout(() => {
+			postAction("setIncome", { year, month, income: cents, ownerId: ownerId || null }, { signal: controller.signal })
+				.then((snap) => {
+					setSnapshot(snap);
+					onAfterChange?.();
+				})
+				.catch(() => {})
+				.finally(() => {
+					incomeAbortRef.current = null;
+				});
+		}, 1000);
 	}
 
 	return (
@@ -229,21 +243,24 @@ function CurrencySelect({ onAfterChange }) {
 		{ code: "USD", label: "USD — $" },
 		{ code: "GBP", label: "GBP — £" },
 	];
+	const timerRef = useRef(null);
+	const abortRef = useRef(null);
 	return (
 		<select
 			value={currencyCode}
-			onChange={(e) =>
-				postAction("setCurrency", {
-					year,
-					month,
-					currencyCode: e.target.value,
-				})
-					.then((snap) => {
-						setSnapshot(snap);
-						typeof onAfterChange === "function" && onAfterChange();
-					})
-					.catch(() => {})
-			}
+			onChange={(e) => {
+				if (timerRef.current) clearTimeout(timerRef.current);
+				if (abortRef.current) abortRef.current.abort();
+				const controller = new AbortController();
+				abortRef.current = controller;
+				const value = e.target.value;
+				timerRef.current = setTimeout(() => {
+					postAction("setCurrency", { year, month, currencyCode: value, ownerId: ownerId || null }, { signal: controller.signal })
+						.then((snap) => { setSnapshot(snap); typeof onAfterChange === "function" && onAfterChange(); })
+						.catch(() => {})
+						.finally(() => { abortRef.current = null; });
+				}, 1000);
+			}}
 			className={kit.input}
 			style={{ width: 180 }}
 		>

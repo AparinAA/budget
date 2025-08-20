@@ -7,16 +7,18 @@ import {
 import { requireUserId } from "@/shared/auth/session";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req) {
 	try {
 		await requireUserId();
-		// Обновляем статистику для текущего месяца перед выдачей
-		const now = new Date();
-		const year = now.getFullYear();
-		const month = now.getMonth() + 1;
-		await getOrCreateBudget(year, month);
-		await saveMonthlyStats(year, month);
-		const stats = await getMonthlyStats();
+	const { searchParams } = new URL(req.url);
+	const ownerId = searchParams.get("ownerId") || null;
+	// Обновляем статистику для текущего месяца перед выдачей
+	const now = new Date();
+	const year = now.getFullYear();
+	const month = now.getMonth() + 1;
+	await getOrCreateBudget(year, month, ownerId);
+	await saveMonthlyStats(year, month, ownerId);
+	const stats = await getMonthlyStats(ownerId);
 		return NextResponse.json(stats);
 	} catch (e) {
 		return NextResponse.json(

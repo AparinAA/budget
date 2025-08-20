@@ -17,7 +17,8 @@ export async function GET(req) {
 	const year = Number(searchParams.get("year")) || new Date().getFullYear();
 	const month =
 		Number(searchParams.get("month")) || new Date().getMonth() + 1;
-	const snap = await getBudgetSnapshot(year, month);
+	const ownerId = searchParams.get("ownerId") || null;
+	const snap = await getBudgetSnapshot(year, month, ownerId);
 	return NextResponse.json(snap);
 }
 
@@ -70,13 +71,13 @@ export async function POST(req) {
 		}
 		// Сохраняем статистику после любого изменения
 		if (payload?.year && payload?.month) {
-			const { saveMonthlyStats, calculateAndUpsertSavings } =
-				await import("@/features/budget/server");
-			await saveMonthlyStats(payload.year, payload.month);
-			await calculateAndUpsertSavings(payload.year, payload.month);
+			const { saveMonthlyStats } = await import(
+				"@/features/budget/server"
+			);
+			await saveMonthlyStats(payload.year, payload.month, payload?.ownerId || null);
 		}
-		const { year, month } = payload;
-		const snap = await getBudgetSnapshot(year, month);
+		const { year, month, ownerId } = payload;
+		const snap = await getBudgetSnapshot(year, month, ownerId || null);
 		return NextResponse.json(snap);
 	} catch (e) {
 		console.error(e);

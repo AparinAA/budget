@@ -8,7 +8,11 @@ export const useBudgetStore = create((set) => ({
 	currency: "EUR",
 	categories: [],
 	loading: false,
+	ownerId: null,
+	owners: [], // [{ ownerId, email, role, type }]
 	setPeriod: (year, month) => set({ year, month }),
+	setOwnerId: (ownerId) => set({ ownerId }),
+	setOwners: (owners) => set({ owners }),
 	setSnapshot: (snap) =>
 		set({
 			income: snap.income,

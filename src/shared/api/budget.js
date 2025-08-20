@@ -1,7 +1,9 @@
-export async function fetchSnapshot(year, month) {
+export async function fetchSnapshot(year, month, signal, ownerId = null) {
 	try {
-		const res = await fetch(`/api/budget?year=${year}&month=${month}`, {
+	const own = ownerId ? `&ownerId=${encodeURIComponent(ownerId)}` : "";
+	const res = await fetch(`/api/budget?year=${year}&month=${month}${own}`, {
 			cache: "no-store",
+			signal,
 		});
 		if (res.status === 401) {
 			if (typeof window !== "undefined")
@@ -29,12 +31,13 @@ export async function fetchSnapshot(year, month) {
 	}
 }
 
-export async function postAction(action, payload) {
+export async function postAction(action, payload, { signal } = {}) {
 	try {
 		const res = await fetch("/api/budget", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ action, payload }),
+			signal,
 		});
 		if (res.status === 401) {
 			if (typeof window !== "undefined")
@@ -56,8 +59,9 @@ export async function postAction(action, payload) {
 	}
 }
 
-export async function fetchStats() {
-	const r = await fetch("/api/budget/stats");
+export async function fetchStats(signal, ownerId = null) {
+	const own = ownerId ? `?ownerId=${encodeURIComponent(ownerId)}` : "";
+	const r = await fetch(`/api/budget/stats${own}`, { signal });
 	if (r.status === 401) {
 		if (typeof window !== "undefined") window.location.href = "/view/auth";
 		throw new Error("Unauthorized");
@@ -66,8 +70,9 @@ export async function fetchStats() {
 	return Array.isArray(d) ? d : [];
 }
 
-export async function fetchSavings() {
-	const r = await fetch("/api/budget/savings");
+export async function fetchSavings(signal, ownerId = null) {
+	const own = ownerId ? `?ownerId=${encodeURIComponent(ownerId)}` : "";
+	const r = await fetch(`/api/budget/savings${own}`, { signal });
 	if (r.status === 401) {
 		if (typeof window !== "undefined") window.location.href = "/view/auth";
 		throw new Error("Unauthorized");
@@ -75,4 +80,23 @@ export async function fetchSavings() {
 	return (
 		(await r.json().catch(() => null)) || { totalBank: 0, transfers: [] }
 	);
+}
+
+// Шаринг бюджетов
+export async function shareBudgetWith(ownerId, memberEmail, role = "editor") {
+	const r = await fetch("/api/budget/share", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ ownerId, memberEmail, role }),
+	});
+	const d = await r.json().catch(() => ({}));
+	if (!r.ok) throw new Error(d?.error || "Share error");
+	return d;
+}
+
+export async function listAccessibleBudgets() {
+	const r = await fetch("/api/budget/list", { cache: "no-store" });
+	const d = await r.json().catch(() => []);
+	if (!r.ok) throw new Error(d?.error || "List error");
+	return Array.isArray(d) ? d : [];
 }

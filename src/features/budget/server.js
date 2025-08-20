@@ -15,8 +15,24 @@ export async function upsertUser() {
 	return user;
 }
 
-export async function getOrCreateBudget(year, month) {
-	await upsertUser();
+// Проверка доступа к бюджету владельца. Возвращает ownerId.
+export async function ensureAccess(ownerId) {
+	const meId = await requireUserId();
+	if (!ownerId || ownerId === meId) return meId;
+	const share = await prisma.budgetShare.findFirst({
+		where: { ownerId, memberId: meId },
+		select: { id: true },
+	});
+	if (!share) {
+		const err = new Error("Forbidden");
+		err.status = 403;
+		throw err;
+	}
+	return ownerId;
+}
+
+export async function getOrCreateBudget(year, month, ownerId) {
+	const userId = await ensureAccess(ownerId);
 	const defaults = [
 		{ name: "Еда", percent: 30 },
 		{ name: "Аренда", percent: 40 },
@@ -25,14 +41,14 @@ export async function getOrCreateBudget(year, month) {
 	];
 	const result = await prisma.budget.upsert({
 		where: {
-			userId_month_year: { userId: (await upsertUser()).id, month, year },
+			userId_month_year: { userId, month, year },
 		},
 		update: {},
 		create: {
 			month,
 			year,
 			income: 0,
-			userId: (await upsertUser()).id,
+			userId,
 			currencyCode: "RUB",
 			categories: { create: defaults },
 		},
@@ -41,8 +57,8 @@ export async function getOrCreateBudget(year, month) {
 	return result;
 }
 
-export async function setIncome({ year, month, income }) {
-	const b = await getOrCreateBudget(year, month);
+export async function setIncome({ year, month, income, ownerId }) {
+	const b = await getOrCreateBudget(year, month, ownerId);
 	return prisma.budget.update({
 		where: { id: b.id },
 		data: { income: Math.max(0, Math.floor(income)) },
@@ -50,8 +66,8 @@ export async function setIncome({ year, month, income }) {
 }
 
 // Рассчитать и записать накопления по категориям-сейвингам на месяц
-export async function calculateAndUpsertSavings(year, month) {
-	const { id: userId } = await upsertUser();
+export async function calculateAndUpsertSavings(year, month, ownerId) {
+	const userId = await ensureAccess(ownerId);
 	const budget = await prisma.budget.findUnique({
 		where: { userId_month_year: { userId, month, year } },
 		include: { categories: true, expenses: true },
@@ -142,8 +158,8 @@ export async function calculateAndUpsertSavings(year, month) {
 }
 
 // Сохраняет статистику бюджета за месяц
-export async function saveMonthlyStats(year, month) {
-	const { id: userId } = await upsertUser();
+export async function saveMonthlyStats(year, month, ownerId) {
+	const userId = await ensureAccess(ownerId);
 	const budget = await prisma.budget.findUnique({
 		where: { userId_month_year: { userId, month, year } },
 		include: { expenses: true },
@@ -151,14 +167,14 @@ export async function saveMonthlyStats(year, month) {
 	if (!budget) return null;
 	const totalExpenses = budget.expenses.reduce((sum, e) => sum + e.amount, 0);
 	const stats = await prisma.monthlyBudgetStats.upsert({
-		where: { userId_month_year: { userId: "anon", month, year } },
+		where: { userId_month_year: { userId, month, year } },
 		update: {
 			totalIncome: budget.income,
 			totalExpenses,
 			currencyCode: budget.currencyCode,
 		},
 		create: {
-			userId: "anon",
+			userId,
 			month,
 			year,
 			totalIncome: budget.income,
@@ -166,21 +182,21 @@ export async function saveMonthlyStats(year, month) {
 			currencyCode: budget.currencyCode,
 		},
 	});
-	await calculateAndUpsertSavings(year, month);
+	await calculateAndUpsertSavings(year, month, ownerId);
 	return stats;
 }
 
 // Получить статистику по всем месяцам
-export async function getMonthlyStats() {
-	const { id: userId } = await upsertUser();
+export async function getMonthlyStats(ownerId) {
+	const userId = await ensureAccess(ownerId);
 	return prisma.monthlyBudgetStats.findMany({
 		where: { userId },
 		orderBy: [{ year: "desc" }, { month: "desc" }],
 	});
 }
 
-export async function addCategory({ year, month, name, percent }) {
-	const b = await getOrCreateBudget(year, month);
+export async function addCategory({ year, month, name, percent, ownerId }) {
+	const b = await getOrCreateBudget(year, month, ownerId);
 	const p = Math.max(0, Math.min(100, Number(percent) || 0));
 	// суммируем текущие проценты
 	const existing = await prisma.category.findMany({
@@ -200,15 +216,15 @@ export async function addCategory({ year, month, name, percent }) {
 	});
 }
 
-export async function removeCategory({ year, month, categoryId }) {
-	await getOrCreateBudget(year, month);
+export async function removeCategory({ year, month, categoryId, ownerId }) {
+	await getOrCreateBudget(year, month, ownerId);
 	await prisma.expense.deleteMany({ where: { categoryId } });
 	await prisma.savingsTransfer.deleteMany({ where: { categoryId } });
 	await prisma.category.delete({ where: { id: categoryId } });
 }
 
-export async function setCategoryPercent({ year, month, categoryId, percent }) {
-	await getOrCreateBudget(year, month);
+export async function setCategoryPercent({ year, month, categoryId, percent, ownerId }) {
+	await getOrCreateBudget(year, month, ownerId);
 	const current = await prisma.category.findUnique({
 		where: { id: categoryId },
 		select: { id: true, budgetId: true, percent: true },
@@ -234,8 +250,8 @@ export async function setCategoryPercent({ year, month, categoryId, percent }) {
 	});
 }
 
-export async function setCategorySaving({ year, month, categoryId, isSaving }) {
-	await getOrCreateBudget(year, month);
+export async function setCategorySaving({ year, month, categoryId, isSaving, ownerId }) {
+	await getOrCreateBudget(year, month, ownerId);
 	await prisma.category.update({
 		where: { id: categoryId },
 		data: { isSaving: !!isSaving },
@@ -249,7 +265,7 @@ export async function setCategoryRollover({
 	rolloverEnabled,
 	rolloverTargetId,
 }) {
-	await getOrCreateBudget(year, month);
+	await getOrCreateBudget(year, month, ownerId);
 	const src = await prisma.category.findUnique({
 		where: { id: categoryId },
 		select: { id: true, budgetId: true },
@@ -293,8 +309,8 @@ export async function setCategoryRollover({
 	});
 }
 
-export async function addExpense({ year, month, categoryId, amount, note }) {
-	const b = await getOrCreateBudget(year, month);
+export async function addExpense({ year, month, categoryId, amount, note, ownerId }) {
+	const b = await getOrCreateBudget(year, month, ownerId);
 	await prisma.expense.create({
 		data: {
 			amount: Math.max(0, Math.floor(amount)),
@@ -305,8 +321,8 @@ export async function addExpense({ year, month, categoryId, amount, note }) {
 	});
 }
 
-export async function getBudgetSnapshot(year, month) {
-	const b = await getOrCreateBudget(year, month);
+export async function getBudgetSnapshot(year, month, ownerId) {
+	const b = await getOrCreateBudget(year, month, ownerId);
 	const categories = await prisma.category.findMany({
 		where: { budgetId: b.id },
 		orderBy: { createdAt: "asc" },
@@ -326,13 +342,13 @@ export async function getBudgetSnapshot(year, month) {
 	};
 }
 
-export async function setCurrency({ year, month, currencyCode }) {
-	const b = await getOrCreateBudget(year, month);
+export async function setCurrency({ year, month, currencyCode, ownerId }) {
+	const b = await getOrCreateBudget(year, month, ownerId);
 	await prisma.budget.update({ where: { id: b.id }, data: { currencyCode } });
 }
 
-export async function getSavingsSummary() {
-	const { id: userId } = await upsertUser();
+export async function getSavingsSummary(ownerId) {
+	const userId = await ensureAccess(ownerId);
 	const transfers = await prisma.savingsTransfer.findMany({
 		where: { userId },
 		include: { category: true },

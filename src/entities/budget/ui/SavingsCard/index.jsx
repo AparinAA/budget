@@ -6,11 +6,11 @@ import { currency } from "@/shared/lib/format";
 import { useBudgetStore } from "@/shared/store/budgetStore";
 
 export function SavingsCard({ currencyCode, onAfterRecalculate }) {
-	const { year, month } = useBudgetStore();
+	const { year, month, ownerId } = useBudgetStore();
 	const [data, setData] = useState({ totalBank: 0, transfers: [] });
 
 	const load = () =>
-		fetchSavings()
+		fetchSavings(undefined, ownerId || null)
 			.then((d) =>
 				setData(
 					d && typeof d === "object"
@@ -25,7 +25,7 @@ export function SavingsCard({ currencyCode, onAfterRecalculate }) {
 		const handler = () => load();
 		window.addEventListener("refresh-savings", handler);
 		return () => window.removeEventListener("refresh-savings", handler);
-	}, []);
+	}, [ownerId]);
 
 	const { totalBank, transfers } = data;
 
@@ -38,7 +38,7 @@ export function SavingsCard({ currencyCode, onAfterRecalculate }) {
 				<button
 					className={kit.button}
 					onClick={() =>
-						postAction("recalculateSavings", { year, month })
+						postAction("recalculateSavings", { year, month, ownerId: ownerId || null })
 							.then(() => {
 								onAfterRecalculate?.();
 								load();

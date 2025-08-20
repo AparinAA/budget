@@ -1,7 +1,7 @@
 "use client";
 import kit from "@/shared/ui/kit.module.css";
 import styles from "./styles.module.css";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { COLORS } from "@/shared/ui/colors";
 import { currency } from "@/shared/lib/format";
 import { useBudgetStore } from "@/shared/store/budgetStore";
@@ -15,6 +15,7 @@ export function Categories({ onAfterChange }) {
 		currency: currencyCode,
 		categories,
 		setSnapshot,
+		ownerId,
 	} = useBudgetStore();
 
 	const allocated = useMemo(
@@ -29,6 +30,25 @@ export function Categories({ onAfterChange }) {
 			})),
 		[categories, income]
 	);
+
+	// Локальные правки для мгновенного отображения без ожидания сети
+	const [localEdits, setLocalEdits] = useState({}); // { [catId]: { percent?: string, isSaving?: boolean, rolloverEnabled?: boolean, rolloverTargetId?: string|null } }
+	useEffect(() => {
+		setLocalEdits((prev) => {
+			const next = {};
+			for (const c of categories) {
+				// переносим существующие локальные правки, если есть
+				next[c.id] = prev[c.id] || {};
+			}
+			return next;
+		});
+	}, [categories]);
+
+	// Рефы для дебаунса и отмены по полям
+	const percentRefs = useRef(new Map()); // id -> { t, controller }
+	const savingRefs = useRef(new Map());
+	const rolloverRefs = useRef(new Map());
+	const targetRefs = useRef(new Map());
 
 	return (
 		<section className={kit.card}>
@@ -56,31 +76,30 @@ export function Categories({ onAfterChange }) {
 								>
 									<input
 										type="checkbox"
-										checked={!!c.isSaving}
-										onChange={(e) =>
-											postAction("setCategorySaving", {
-												year,
-												month,
-												categoryId: c.id,
-												isSaving: e.target.checked,
-											})
-												.then((snap) => {
-													setSnapshot(snap);
-													onAfterChange?.();
-													return postAction(
-														"recalculateSavings",
-														{ year, month }
-													).catch(() => {});
-												})
-												.then(() => {
-													window.dispatchEvent(
-														new Event(
-															"refresh-savings"
-														)
-													);
-												})
-												.catch(() => {})
-										}
+										checked={localEdits[c.id]?.isSaving ?? !!c.isSaving}
+										onChange={(e) => {
+											const isSaving = e.target.checked;
+											setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), isSaving } }));
+											const cell = savingRefs.current.get(c.id) || { t: null, controller: null };
+											if (cell.t) clearTimeout(cell.t);
+											if (cell.controller) cell.controller.abort();
+											const controller = new AbortController();
+											cell.controller = controller;
+											cell.t = setTimeout(() => {
+												postAction("setCategorySaving", { year, month, categoryId: c.id, isSaving, ownerId: ownerId || null }, { signal: controller.signal })
+													.then((snap) => {
+														setSnapshot(snap);
+														onAfterChange?.();
+														return postAction("recalculateSavings", { year, month, ownerId: ownerId || null }).catch(() => {});
+													})
+													.then(() => {
+														window.dispatchEvent(new Event("refresh-savings"));
+													})
+													.catch(() => {})
+													.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), isSaving: undefined } })); });
+											}, 1000);
+											savingRefs.current.set(c.id, cell);
+										}}
 									/>
 									Копить
 								</label>
@@ -95,67 +114,61 @@ export function Categories({ onAfterChange }) {
 								>
 									<input
 										type="checkbox"
-										checked={!!c.rolloverEnabled}
-										onChange={(e) =>
-											postAction("setCategoryRollover", {
-												year,
-												month,
-												categoryId: c.id,
-												rolloverEnabled:
-													e.target.checked,
-												rolloverTargetId:
-													c.rolloverTargetId || "",
-											})
-												.then((snap) => {
-													setSnapshot(snap);
-													return postAction(
-														"recalculateSavings",
-														{ year, month }
-													).catch(() => {});
-												})
-												.then(() => {
-													window.dispatchEvent(
-														new Event(
-															"refresh-savings"
-														)
-													);
-													onAfterChange?.();
-												})
-												.catch(() => {})
-										}
+										checked={localEdits[c.id]?.rolloverEnabled ?? !!c.rolloverEnabled}
+										onChange={(e) => {
+											const rolloverEnabled = e.target.checked;
+											setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverEnabled } }));
+											const cell = rolloverRefs.current.get(c.id) || { t: null, controller: null };
+											if (cell.t) clearTimeout(cell.t);
+											if (cell.controller) cell.controller.abort();
+											const controller = new AbortController();
+											cell.controller = controller;
+											const rolloverTargetId = (localEdits[c.id]?.rolloverTargetId ?? c.rolloverTargetId) || "";
+											cell.t = setTimeout(() => {
+												postAction("setCategoryRollover", { year, month, categoryId: c.id, rolloverEnabled, rolloverTargetId, ownerId: ownerId || null }, { signal: controller.signal })
+													.then((snap) => {
+														setSnapshot(snap);
+														return postAction("recalculateSavings", { year, month, ownerId: ownerId || null }).catch(() => {});
+													})
+													.then(() => {
+														window.dispatchEvent(new Event("refresh-savings"));
+														onAfterChange?.();
+													})
+													.catch(() => {})
+													.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverEnabled: undefined } })); });
+											}, 1000);
+											rolloverRefs.current.set(c.id, cell);
+										}}
 										disabled={c.isSaving}
 									/>
 									Переносить остаток →
 								</label>
 								{c.rolloverEnabled && (
 									<select
-										value={c.rolloverTargetId ?? ""}
-										onChange={(e) =>
-											postAction("setCategoryRollover", {
-												year,
-												month,
-												categoryId: c.id,
-												rolloverEnabled: true,
-												rolloverTargetId:
-													e.target.value || null,
-											})
-												.then((snap) => {
-													setSnapshot(snap);
-													return postAction(
-														"recalculateSavings",
-														{ year, month }
-													).catch(() => {});
-												})
-												.then(() => {
-													window.dispatchEvent(
-														new Event(
-															"refresh-savings"
-														)
-													);
-													onAfterChange?.();
-												})
-												.catch(() => {})
-										}
+										value={(localEdits[c.id]?.rolloverTargetId ?? c.rolloverTargetId) ?? ""}
+										onChange={(e) => {
+											const val = e.target.value || null;
+											setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverTargetId: val } }));
+											const cell = targetRefs.current.get(c.id) || { t: null, controller: null };
+											if (cell.t) clearTimeout(cell.t);
+											if (cell.controller) cell.controller.abort();
+											const controller = new AbortController();
+											cell.controller = controller;
+											cell.t = setTimeout(() => {
+												postAction("setCategoryRollover", { year, month, categoryId: c.id, rolloverEnabled: true, rolloverTargetId: val, ownerId: ownerId || null }, { signal: controller.signal })
+													.then((snap) => {
+														setSnapshot(snap);
+														return postAction("recalculateSavings", { year, month, ownerId: ownerId || null }).catch(() => {});
+													})
+													.then(() => {
+														window.dispatchEvent(new Event("refresh-savings"));
+														onAfterChange?.();
+													})
+													.catch(() => {})
+													.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverTargetId: undefined } })); });
+											}, 1000);
+											targetRefs.current.set(c.id, cell);
+										}}
 										className={kit.input}
 										style={{ width: 200 }}
 									>
@@ -204,6 +217,7 @@ export function Categories({ onAfterChange }) {
 										year,
 										month,
 										categoryId: c.id,
+										ownerId: ownerId || null,
 									})
 										.then((snap) => {
 											setSnapshot(snap);
@@ -233,22 +247,28 @@ export function Categories({ onAfterChange }) {
 								>
 									Изменить %
 								</span>
-								<input
+												<input
 									type="number"
 									min="0"
 									max="100"
-									value={c.percent}
-									onChange={(e) =>
-										postAction("setCategoryPercent", {
-											year,
-											month,
-											categoryId: c.id,
-											percent:
-												Number(e.target.value) || 0,
-										})
-											.then(setSnapshot)
-											.catch(() => {})
-									}
+													value={localEdits[c.id]?.percent ?? String(c.percent)}
+													onChange={(e) => {
+														const raw = e.target.value;
+														setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), percent: raw } }));
+														const cell = percentRefs.current.get(c.id) || { t: null, controller: null };
+														if (cell.t) clearTimeout(cell.t);
+														if (cell.controller) cell.controller.abort();
+														const controller = new AbortController();
+														cell.controller = controller;
+														const value = Math.max(0, Math.min(100, Number(raw) || 0));
+														cell.t = setTimeout(() => {
+															postAction("setCategoryPercent", { year, month, categoryId: c.id, percent: value, ownerId: ownerId || null }, { signal: controller.signal })
+																.then((snap) => setSnapshot(snap))
+																.catch(() => {})
+																.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), percent: undefined } })); });
+														}, 1000);
+														percentRefs.current.set(c.id, cell);
+													}}
 									className={kit.input}
 									style={{ width: 100 }}
 								/>

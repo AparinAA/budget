@@ -19,6 +19,12 @@ export async function POST(req) {
 					).login(payload)
 				);
 			case "register":
+				if (process.env.NODE_ENV !== "development") {
+					return NextResponse.json(
+						{ error: "Registration disabled" },
+						{ status: 403 }
+					);
+				}
 				return NextResponse.json(
 					await (
 						await import("@/features/auth/server")

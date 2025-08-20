@@ -4,7 +4,6 @@ import { getMe, authAction } from "@/shared/api/auth";
 
 export default function AuthWidgetPage() {
 	const [me, setMe] = useState(null);
-	const [mode, setMode] = useState("login");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	useEffect(() => {
@@ -15,9 +14,7 @@ export default function AuthWidgetPage() {
 	async function submit(e) {
 		e.preventDefault();
 		try {
-			if (mode === "login")
-				await authAction("login", { email, password });
-			else await authAction("register", { email, password });
+			await authAction("login", { email, password });
 			setEmail("");
 			setPassword("");
 			const u = await getMe();
@@ -66,16 +63,7 @@ export default function AuthWidgetPage() {
 				type="password"
 				style={inp}
 			/>
-			<button type="submit" style={btn}>
-				{mode === "login" ? "Войти" : "Регистрация"}
-			</button>
-			<button
-				type="button"
-				onClick={() => setMode(mode === "login" ? "register" : "login")}
-				style={{ ...btn, background: "#2b3947" }}
-			>
-				{mode === "login" ? "Регистрация" : "Войти"}
-			</button>
+			<button type="submit" style={btn}>Войти</button>
 		</form>
 	);
 }

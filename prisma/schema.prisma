@@ -21,6 +21,8 @@ model User {
   budgets Budget[]
   monthlyStats MonthlyBudgetStats[]
   savingsTransfers SavingsTransfer[]
+  ownedShares   BudgetShare[] @relation("ShareOwner")
+  memberShares  BudgetShare[] @relation("ShareMember")
 }
 
 model Budget {
@@ -107,4 +109,17 @@ model Session {
   userId   String
   expires  DateTime
   createdAt DateTime @default(now())
+}
+
+// Доступ к бюджетам (логика совместного редактирования бюджетов по владельцу)
+model BudgetShare {
+  id         String   @id @default(cuid())
+  owner      User     @relation("ShareOwner", fields: [ownerId], references: [id])
+  ownerId    String
+  member     User     @relation("ShareMember", fields: [memberId], references: [id])
+  memberId   String
+  role       String   @default("editor") // editor, viewer (на будущее)
+  createdAt  DateTime @default(now())
+
+  @@unique([ownerId, memberId])
 }
