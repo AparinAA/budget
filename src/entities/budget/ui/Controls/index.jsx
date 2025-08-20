@@ -235,6 +235,7 @@ function CurrencySelect({ onAfterChange }) {
 		currency: currencyCode,
 		year,
 		month,
+	ownerId,
 		setSnapshot,
 	} = useBudgetStore();
 	const options = [
@@ -254,6 +255,8 @@ function CurrencySelect({ onAfterChange }) {
 				const controller = new AbortController();
 				abortRef.current = controller;
 				const value = e.target.value;
+				// Мгновенно обновляем UI валюту, сеть — с дебаунсом
+				useBudgetStore.setState((s) => ({ ...s, currency: value }));
 				timerRef.current = setTimeout(() => {
 					postAction("setCurrency", { year, month, currencyCode: value, ownerId: ownerId || null }, { signal: controller.signal })
 						.then((snap) => { setSnapshot(snap); typeof onAfterChange === "function" && onAfterChange(); })
