@@ -8,7 +8,7 @@ export default function RootLayout({ children }) {
 	return (
 		<html lang="ru">
 			<Script
-				src="https://telegram.org/js/telegram-web-app.js"
+				src="https://telegram.org/js/telegram-web-app.js?59"
 				strategy="beforeInteractive"
 			/>
 			<Script id="tg-init" strategy="afterInteractive">
