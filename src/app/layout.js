@@ -1,3 +1,4 @@
+import Script from "next/script";
 export const metadata = {
 	title: "Семейный бюджет",
 	description: "Планирование и контроль расходов",
@@ -6,6 +7,23 @@ export const metadata = {
 export default function RootLayout({ children }) {
 	return (
 		<html lang="ru">
+			<Script
+				src="https://telegram.org/js/telegram-web-app.js"
+				strategy="beforeInteractive"
+			/>
+			<Script id="tg-init" strategy="afterInteractive">
+				{`
+				(function(){
+				  if (typeof window === 'undefined') return;
+				  const tg = window.Telegram && window.Telegram.WebApp;
+				  if (!tg) return;
+				  try {
+				    tg.ready();
+				    tg.expand();
+				  } catch {}
+				})();
+				`}
+			</Script>
 			<body
 				style={{
 					fontFamily:
