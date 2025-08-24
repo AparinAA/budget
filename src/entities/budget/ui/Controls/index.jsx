@@ -65,6 +65,8 @@ export function Controls({ onAfterChange, totalRemaining }) {
 		const v = e.target.value;
 		setIncomeRub(v);
 		const cents = Math.max(0, Math.floor(Number(v || 0) * 100));
+		// Оптимистично обновляем стор, чтобы UI пересчитался сразу
+		useBudgetStore.setState((s) => ({ ...s, income: cents }));
 		if (incomeTimerRef.current) clearTimeout(incomeTimerRef.current);
 		if (incomeAbortRef.current) incomeAbortRef.current.abort();
 		const controller = new AbortController();
@@ -79,7 +81,7 @@ export function Controls({ onAfterChange, totalRemaining }) {
 				.finally(() => {
 					incomeAbortRef.current = null;
 				});
-		}, 1000);
+		}, 1500);
 	}
 
 	return (

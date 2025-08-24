@@ -10,6 +10,7 @@ export default function RootLayout({ children }) {
 				style={{
 					fontFamily:
 						"system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+					fontSize: 14,
 					background: "#0b0f14",
 					color: "#e6edf3",
 				}}
