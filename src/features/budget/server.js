@@ -264,6 +264,7 @@ export async function setCategoryRollover({
 	categoryId,
 	rolloverEnabled,
 	rolloverTargetId,
+	ownerId,
 }) {
 	await getOrCreateBudget(year, month, ownerId);
 	const src = await prisma.category.findUnique({

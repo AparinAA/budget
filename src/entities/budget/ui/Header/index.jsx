@@ -82,6 +82,7 @@ export function BudgetHeader({ year, month, currencyCode, stat, ownerId }) {
             borderRadius: 8,
             background: "#0d1117",
             marginBottom: 16,
+            flexWrap: "wrap"
         }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <Link href="/view/budgets" className={kit.button} style={{ textDecoration: "none" }}>
@@ -94,7 +95,7 @@ export function BudgetHeader({ year, month, currencyCode, stat, ownerId }) {
                     Владелец: <b style={{ color: "#e6edf3" }}>{ownerEmail || (isOwner ? (me?.email || "Я") : "—")}</b>
                 </div>
             </div>
-            <div className={kit.label} style={{ display: "flex", gap: 12 }}>
+            <div className={kit.label} style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <span>
                     Доход: <b style={{ color: "#e6edf3" }}>{fmt(totalIncome / 100, currencyCode)}</b>
                 </span>
@@ -105,7 +106,7 @@ export function BudgetHeader({ year, month, currencyCode, stat, ownerId }) {
                     Остаток: <b style={{ color: "#e6edf3" }}>{fmt(remaining / 100, currencyCode)}</b>
                 </span>
             </div>
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 {isOwner && (
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     {shareOpen && (

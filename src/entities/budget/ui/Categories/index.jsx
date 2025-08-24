@@ -65,66 +65,56 @@ export function Categories({ onAfterChange }) {
 									}}
 								/>
 								<div style={{ fontWeight: 500 }}>{c.name}</div>
-								<label
-									className={kit.label}
-									style={{
-										display: "flex",
-										gap: 6,
-										alignItems: "center",
-										marginLeft: 10,
-									}}
-								>
-									<input
-										type="checkbox"
-										checked={localEdits[c.id]?.isSaving ?? !!c.isSaving}
-										onChange={(e) => {
-											const isSaving = e.target.checked;
-											setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), isSaving } }));
-											const cell = savingRefs.current.get(c.id) || { t: null, controller: null };
-											if (cell.t) clearTimeout(cell.t);
-											if (cell.controller) cell.controller.abort();
-											const controller = new AbortController();
-											cell.controller = controller;
-											cell.t = setTimeout(() => {
-												postAction("setCategorySaving", { year, month, categoryId: c.id, isSaving, ownerId: ownerId || null }, { signal: controller.signal })
-													.then((snap) => {
-														setSnapshot(snap);
-														onAfterChange?.();
-														return postAction("recalculateSavings", { year, month, ownerId: ownerId || null }).catch(() => {});
-													})
-													.then(() => {
-														window.dispatchEvent(new Event("refresh-savings"));
-													})
-													.catch(() => {})
-													.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), isSaving: undefined } })); });
-											}, 1000);
-											savingRefs.current.set(c.id, cell);
-										}}
-									/>
-									Копить
-								</label>
-								<label
-									className={kit.label}
-									style={{
-										display: "flex",
-										gap: 6,
-										alignItems: "center",
-										marginLeft: 10,
-									}}
-								>
-									<input
-										type="checkbox"
-										checked={localEdits[c.id]?.rolloverEnabled ?? !!c.rolloverEnabled}
-										onChange={(e) => {
-											const rolloverEnabled = e.target.checked;
-											setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverEnabled } }));
-											const cell = rolloverRefs.current.get(c.id) || { t: null, controller: null };
-											if (cell.t) clearTimeout(cell.t);
-											if (cell.controller) cell.controller.abort();
-											const controller = new AbortController();
-											cell.controller = controller;
-											const rolloverTargetId = (localEdits[c.id]?.rolloverTargetId ?? c.rolloverTargetId) || "";
-											cell.t = setTimeout(() => {
+								{(() => {
+									const active = localEdits[c.id]?.isSaving ?? !!c.isSaving;
+									return (
+										<button
+											type="button"
+											aria-pressed={active}
+											className={kit.button}
+											style={{ marginLeft: 10, background: active ? "#256c43" : undefined, borderColor: active ? "#2b8857" : undefined }}
+											onClick={() => {
+												const isSaving = !active;
+												setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), isSaving } }));
+												const cell = savingRefs.current.get(c.id) || { t: null, controller: null };
+												if (cell.t) clearTimeout(cell.t);
+												if (cell.controller) cell.controller.abort();
+												const controller = new AbortController();
+												cell.controller = controller;
+												cell.t = setTimeout(() => {
+													postAction("setCategorySaving", { year, month, categoryId: c.id, isSaving, ownerId: ownerId || null }, { signal: controller.signal })
+														.then((snap) => {
+															setSnapshot(snap);
+															onAfterChange?.();
+															return postAction("recalculateSavings", { year, month, ownerId: ownerId || null }).catch(() => {});
+														})
+														.then(() => {
+															window.dispatchEvent(new Event("refresh-savings"));
+														})
+														.catch(() => {})
+														.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), isSaving: undefined } })); });
+												}, 1000);
+												savingRefs.current.set(c.id, cell);
+											}}
+										>
+											Копить
+										</button>
+									);
+								})()}
+								{(() => {
+									const active = localEdits[c.id]?.rolloverEnabled ?? !!c.rolloverEnabled;
+									return (
+										<button
+											type="button"
+											aria-pressed={active}
+											className={kit.button}
+											style={{ marginLeft: 10, background: active ? "#374151" : undefined, borderColor: active ? "#4b5563" : undefined, opacity: c.isSaving ? 0.6 : 1, cursor: c.isSaving ? "not-allowed" : "pointer" }}
+											disabled={c.isSaving}
+											onClick={() => {
+												const rolloverEnabled = !active;
+												setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverEnabled } }));
+												const controller = new AbortController();
+												const rolloverTargetId = (localEdits[c.id]?.rolloverTargetId ?? c.rolloverTargetId) || "";
 												postAction("setCategoryRollover", { year, month, categoryId: c.id, rolloverEnabled, rolloverTargetId, ownerId: ownerId || null }, { signal: controller.signal })
 													.then((snap) => {
 														setSnapshot(snap);
@@ -135,39 +125,31 @@ export function Categories({ onAfterChange }) {
 														onAfterChange?.();
 													})
 													.catch(() => {})
-													.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverEnabled: undefined } })); });
-											}, 1000);
-											rolloverRefs.current.set(c.id, cell);
-										}}
-										disabled={c.isSaving}
-									/>
-									Переносить остаток →
-								</label>
+													.finally(() => { setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverEnabled: undefined } })); });
+											}}
+										>
+											Переносить остаток →
+										</button>
+									);
+								})()}
 								{c.rolloverEnabled && (
 									<select
 										value={(localEdits[c.id]?.rolloverTargetId ?? c.rolloverTargetId) ?? ""}
 										onChange={(e) => {
 											const val = e.target.value || null;
 											setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverTargetId: val } }));
-											const cell = targetRefs.current.get(c.id) || { t: null, controller: null };
-											if (cell.t) clearTimeout(cell.t);
-											if (cell.controller) cell.controller.abort();
 											const controller = new AbortController();
-											cell.controller = controller;
-											cell.t = setTimeout(() => {
-												postAction("setCategoryRollover", { year, month, categoryId: c.id, rolloverEnabled: true, rolloverTargetId: val, ownerId: ownerId || null }, { signal: controller.signal })
-													.then((snap) => {
-														setSnapshot(snap);
-														return postAction("recalculateSavings", { year, month, ownerId: ownerId || null }).catch(() => {});
-													})
-													.then(() => {
-														window.dispatchEvent(new Event("refresh-savings"));
-														onAfterChange?.();
-													})
-													.catch(() => {})
-													.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverTargetId: undefined } })); });
-											}, 1000);
-											targetRefs.current.set(c.id, cell);
+											postAction("setCategoryRollover", { year, month, categoryId: c.id, rolloverEnabled: true, rolloverTargetId: val, ownerId: ownerId || null }, { signal: controller.signal })
+												.then((snap) => {
+													setSnapshot(snap);
+													return postAction("recalculateSavings", { year, month, ownerId: ownerId || null }).catch(() => {});
+												})
+												.then(() => {
+													window.dispatchEvent(new Event("refresh-savings"));
+													onAfterChange?.();
+												})
+												.catch(() => {})
+												.finally(() => { setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverTargetId: undefined } })); });
 										}}
 										className={kit.input}
 										style={{ width: 200 }}

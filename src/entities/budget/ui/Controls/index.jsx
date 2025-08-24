@@ -86,8 +86,10 @@ export function Controls({ onAfterChange, totalRemaining }) {
 		<section className={kit.card}>
 			<div className={kit.rowLg}>
 				<label className={kit.label}>Период</label>
-				<MonthSelect />
-				<YearSelect />
+				<div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+					<MonthSelect />
+					<YearSelect />
+				</div>
 			</div>
 
 			<div className={kit.rowLg}>
@@ -99,6 +101,7 @@ export function Controls({ onAfterChange, totalRemaining }) {
 					min="0"
 					placeholder="e.g., 5000"
 					className={kit.input}
+					style={{ maxWidth: 200 }}
 				/>
 				<div className={`${kit.mlAuto} ${kit.label}`}>
 					Остаток:{" "}
@@ -111,14 +114,15 @@ export function Controls({ onAfterChange, totalRemaining }) {
 				<CurrencySelect onAfterChange={onAfterChange} />
 			</div>
 
-			<form onSubmit={handleAddCategory} className={kit.row}>
+	    <form onSubmit={handleAddCategory} className={kit.row}>
 				<input
 					value={newCat.name}
 					onChange={(e) =>
 						setNewCat((s) => ({ ...s, name: e.target.value }))
 					}
 					placeholder="Новая категория"
-					className={kit.input}
+		    className={kit.input}
+		    style={{ minWidth: 200, flex: 1 }}
 				/>
 				<input
 					value={newCat.percent}
@@ -129,22 +133,22 @@ export function Controls({ onAfterChange, totalRemaining }) {
 					min="0"
 					max="100"
 					placeholder="% от дохода"
-					className={kit.input}
-					style={{ width: 140 }}
+		    className={kit.input}
+		    style={{ width: 140 }}
 				/>
 				<button type="submit" className={kit.button}>
 					Добавить категорию
 				</button>
 			</form>
 
-			<form onSubmit={handleAddExpense} className={kit.row}>
+	    <form onSubmit={handleAddExpense} className={kit.row}>
 				<select
 					value={expense.catId}
 					onChange={(e) =>
 						setExpense((s) => ({ ...s, catId: e.target.value }))
 					}
-					className={kit.input}
-					style={{ width: 220 }}
+		    className={kit.input}
+		    style={{ minWidth: 220, flex: 1 }}
 				>
 					<option value="">Выбрать категорию</option>
 					{categories.map((c) => (
@@ -161,8 +165,8 @@ export function Controls({ onAfterChange, totalRemaining }) {
 					type="number"
 					min="0"
 					placeholder="Сумма траты"
-					className={kit.input}
-					style={{ width: 160 }}
+		    className={kit.input}
+		    style={{ width: 140 }}
 				/>
 				<button type="submit" className={kit.button}>
 					Добавить расход

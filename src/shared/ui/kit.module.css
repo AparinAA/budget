@@ -88,3 +88,33 @@
 	font-size: 15px;
 	cursor: pointer;
 }
+
+/* Touch-friendly checkboxes */
+.checkbox {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 8px;
+	border-radius: 6px;
+}
+.checkbox input[type="checkbox"] {
+	width: 22px;
+	height: 22px;
+}
+
+/* Mobile helpers */
+/* placeholder utility; styles applied in media block */
+.fullOnMobile { width: auto; }
+
+@media (hover: none) and (pointer: coarse) {
+	.button { padding: 10px 14px; }
+}
+
+@media (max-width: 900px) {
+	.card { padding: 12px; }
+	.row, .rowLg { gap: 10px; }
+	.label { font-size: 13px; }
+	.cardTitle { font-size: 16px; }
+	.fullOnMobile { width: 100% !important; }
+	.button { width: auto; }
+}
