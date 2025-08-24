@@ -4,7 +4,7 @@ import {
 	setIncome,
 	addCategory,
 	removeCategory,
-	setCategoryPercent,
+	setCategoryAmount,
 	addExpense,
 	setCurrency,
 } from "@/features/budget/server";
@@ -40,8 +40,8 @@ export async function POST(req) {
 			case "removeCategory":
 				await removeCategory(payload);
 				break;
-			case "setCategoryPercent":
-				await setCategoryPercent(payload);
+			case "setCategoryAmount":
+				await setCategoryAmount(payload);
 				break;
 			case "setCategorySaving": {
 				const { setCategorySaving } = await import(

@@ -60,24 +60,22 @@ export default function HomePage() {
 		() =>
 			categories.map((c) => ({
 				...c,
-				allocated: (income / 100) * (c.percent / 100),
-				remaining: Math.max(
-					0,
-					(income / 100) * (c.percent / 100) - (c.spent || 0) / 100
-				),
+				allocated: (Number(c.amount) || 0) / 100,
+				remaining: Math.max(0, ((Number(c.amount) || 0) - (c.spent || 0)) / 100),
 			})),
-		[categories, income]
+		[categories]
 	);
 
 	const totalSpent = useMemo(
 		() => allocated.reduce((s, c) => s + (c.spent || 0) / 100, 0),
 		[allocated]
 	);
-	const totalRemaining = Math.max(0, income / 100 - totalSpent);
+	const totalAllocated = allocated.reduce((s, c) => s + c.allocated, 0);
+	const totalRemaining = Math.max(0, income / 100 - totalAllocated);
 
 	const pieData = allocated.map((c) => ({
 		name: c.name,
-		value: Math.round(c.allocated),
+		value: c.allocated, // оставляем дробные значения, чтобы проценты считались точнее
 	}));
 	const barData = allocated.map((c) => ({
 		name: c.name,

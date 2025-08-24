@@ -18,6 +18,9 @@ import { COLORS } from "@/shared/ui/colors";
 import { currency } from "@/shared/lib/format";
 
 export function Charts({ pieData, barData, currencyCode }) {
+	const totalPie = Array.isArray(pieData)
+		? pieData.reduce((s, d) => s + (Number(d?.value) || 0), 0)
+		: 0;
 	return (
 		<section className={styles.grid2}>
 			<div className={kit.card}>
@@ -30,7 +33,8 @@ export function Charts({ pieData, barData, currencyCode }) {
 								dataKey="value"
 								nameKey="name"
 								outerRadius={100}
-								label
+								label={false}
+								labelLine={false}
 							>
 								{pieData.map((entry, index) => (
 									<Cell
@@ -40,7 +44,19 @@ export function Charts({ pieData, barData, currencyCode }) {
 								))}
 							</Pie>
 							<Tooltip
-								formatter={(v) => currency(v, currencyCode)}
+								content={({ active, payload }) => {
+									if (!active || !payload || !payload.length) return null;
+									const p0 = payload[0];
+									const name = p0?.payload?.name ?? p0?.name ?? "";
+									const valueNum = Number(p0?.value) || 0;
+									const pct = totalPie > 0 ? Math.round((valueNum / totalPie) * 100) : 0;
+									return (
+										<div style={{ background: "#0b1220", border: "1px solid #1f2a37", padding: 8, borderRadius: 6 }}>
+											<div style={{ color: "#9fb3c8" }}>{name}</div>
+											<div style={{ color: "#e6edf3", fontWeight: 600 }}>{currency(valueNum, currencyCode)} ({pct}%)</div>
+										</div>
+									);
+								}}
 							/>
 						</PieChart>
 					</ResponsiveContainer>

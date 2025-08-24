@@ -10,6 +10,7 @@ export async function GET() {
 export async function POST(req) {
 	const body = await req.json().catch(() => ({}));
 	const { action, payload } = body || {};
+	console.info(body)
 	try {
 		switch (action) {
 			case "login":

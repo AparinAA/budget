@@ -34,10 +34,10 @@ export async function ensureAccess(ownerId) {
 export async function getOrCreateBudget(year, month, ownerId) {
 	const userId = await ensureAccess(ownerId);
 	const defaults = [
-		{ name: "Еда", percent: 30 },
-		{ name: "Аренда", percent: 40 },
-		{ name: "Транспорт", percent: 10 },
-		{ name: "Развлечения", percent: 10 },
+		{ name: "Еда", amount: 0 },
+		{ name: "Аренда", amount: 0 },
+		{ name: "Транспорт", amount: 0 },
+		{ name: "Развлечения", amount: 0 },
 	];
 	const result = await prisma.budget.upsert({
 		where: {
@@ -85,7 +85,7 @@ export async function calculateAndUpsertSavings(year, month, ownerId) {
 	const rolloverAdds = new Map(); // targetCategoryId -> addition
 
 	for (const c of budget.categories) {
-		const allocated = Math.floor((budget.income * c.percent) / 100);
+		const allocated = Math.max(0, Number(c.amount) || 0);
 		const spent = spentByCat.get(c.id) || 0;
 		const leftover = Math.max(0, allocated - spent);
 		if (c.isSaving) {
@@ -195,24 +195,22 @@ export async function getMonthlyStats(ownerId) {
 	});
 }
 
-export async function addCategory({ year, month, name, percent, ownerId }) {
+export async function addCategory({ year, month, name, amount, ownerId }) {
 	const b = await getOrCreateBudget(year, month, ownerId);
-	const p = Math.max(0, Math.min(100, Number(percent) || 0));
-	// суммируем текущие проценты
+	const a = Math.max(0, Math.floor(Number(amount) || 0));
+	// суммируем текущие суммы категорий
 	const existing = await prisma.category.findMany({
 		where: { budgetId: b.id },
-		select: { percent: true },
+		select: { amount: true },
 	});
-	const total = existing.reduce((s, c) => s + (Number(c.percent) || 0), 0);
-	if (total + p > 100) {
-		const err = new Error(
-			"Сумма процентов по категориям не может превышать 100%"
-		);
+	const total = existing.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+	if (total + a > b.income) {
+		const err = new Error("Сумма по категориям не может превышать доход");
 		err.status = 400;
 		throw err;
 	}
 	await prisma.category.create({
-		data: { name, percent: p, budgetId: b.id },
+		data: { name, amount: a, budgetId: b.id },
 	});
 }
 
@@ -223,30 +221,30 @@ export async function removeCategory({ year, month, categoryId, ownerId }) {
 	await prisma.category.delete({ where: { id: categoryId } });
 }
 
-export async function setCategoryPercent({ year, month, categoryId, percent, ownerId }) {
+export async function setCategoryAmount({ year, month, categoryId, amount, ownerId }) {
 	await getOrCreateBudget(year, month, ownerId);
 	const current = await prisma.category.findUnique({
 		where: { id: categoryId },
-		select: { id: true, budgetId: true, percent: true },
+		select: { id: true, budgetId: true, amount: true },
 	});
 	if (!current) return;
-	const newPercent = Math.max(0, Math.min(100, Number(percent) || 0));
-	// сумма процентов по остальным категориям этого бюджета
+	const newAmount = Math.max(0, Math.floor(Number(amount) || 0));
+	// сумма по остальным категориям этого бюджета
 	const others = await prisma.category.findMany({
 		where: { budgetId: current.budgetId, id: { not: categoryId } },
-		select: { percent: true },
+		select: { amount: true },
 	});
-	const othersSum = others.reduce((s, c) => s + (Number(c.percent) || 0), 0);
-	if (othersSum + newPercent > 100) {
-		const err = new Error(
-			"Сумма процентов по категориям не может превышать 100%"
-		);
+	const othersSum = others.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+	const b = await prisma.budget.findFirst({ where: { id: current.budgetId } });
+	if (!b) return;
+	if (othersSum + newAmount > b.income) {
+		const err = new Error("Сумма по категориям не может превышать доход");
 		err.status = 400;
 		throw err;
 	}
 	await prisma.category.update({
 		where: { id: categoryId },
-		data: { percent: newPercent },
+		data: { amount: newAmount },
 	});
 }
 

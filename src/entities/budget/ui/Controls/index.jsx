@@ -15,7 +15,7 @@ export function Controls({ onAfterChange, totalRemaining }) {
 		ownerId,
 	} = useBudgetStore();
 	const [incomeRub, setIncomeRub] = useState("");
-	const [newCat, setNewCat] = useState({ name: "", percent: "" });
+	const [newCat, setNewCat] = useState({ name: "", amount: "" });
 	const [expense, setExpense] = useState({ catId: "", amount: "" });
 
 	useEffect(() => {
@@ -29,13 +29,13 @@ export function Controls({ onAfterChange, totalRemaining }) {
 			year,
 			month,
 			name: newCat.name,
-			percent: Number(newCat.percent) || 0,
+			amount: Math.floor((Number(newCat.amount) || 0) * 100),
 			ownerId: ownerId || null,
 		})
 			.then((snap) => {
 				setSnapshot(snap);
 				onAfterChange?.();
-				setNewCat({ name: "", percent: "" });
+				setNewCat({ name: "", amount: "" });
 			})
 			.catch(() => {});
 	}
@@ -125,16 +125,15 @@ export function Controls({ onAfterChange, totalRemaining }) {
 		    style={{ minWidth: 200, flex: 1 }}
 				/>
 				<input
-					value={newCat.percent}
+					value={newCat.amount}
 					onChange={(e) =>
-						setNewCat((s) => ({ ...s, percent: e.target.value }))
+						setNewCat((s) => ({ ...s, amount: e.target.value }))
 					}
 					type="number"
 					min="0"
-					max="100"
-					placeholder="% от дохода"
-		    className={kit.input}
-		    style={{ width: 140 }}
+					placeholder="Сумма, напр. 1000"
+					className={kit.input}
+					style={{ width: 160 }}
 				/>
 				<button type="submit" className={kit.button}>
 					Добавить категорию

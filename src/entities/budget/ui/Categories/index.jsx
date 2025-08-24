@@ -19,15 +19,19 @@ export function Categories({ onAfterChange }) {
 	} = useBudgetStore();
 
 	const allocated = useMemo(
-		() =>
-			categories.map((c) => ({
-				...c,
-				allocated: (income / 100) * (c.percent / 100),
-				remaining: Math.max(
-					0,
-					(income / 100) * (c.percent / 100) - (c.spent || 0) / 100
-				),
-			})),
+		() => {
+			const inc = Number(income) || 0;
+			return categories.map((c) => {
+				const amt = Number(c.amount) || 0;
+				const pct = inc > 0 ? Math.round((amt / inc) * 100) : 0;
+				return {
+					...c,
+					allocated: amt / 100,
+					remaining: Math.max(0, (amt - (c.spent || 0)) / 100),
+					percentOfIncome: pct,
+				};
+			});
+		},
 		[categories, income]
 	);
 
@@ -174,8 +178,7 @@ export function Categories({ onAfterChange }) {
 								)}
 							</div>
 							<div className={kit.label}>
-								{c.percent}% →{" "}
-								{currency(c.allocated, currencyCode)}
+								Выделено: {currency(c.allocated, currencyCode)} · {c.percentOfIncome}% от дохода
 							</div>
 							<div className={kit.label}>
 								Потрачено:{" "}
@@ -184,13 +187,7 @@ export function Categories({ onAfterChange }) {
 							{c.isSaving && (
 								<div style={{ color: "#57d9a3", fontSize: 13 }}>
 									К накоплению:{" "}
-									{currency(
-										Math.max(
-											0,
-											c.allocated - (c.spent || 0) / 100
-										),
-										currencyCode
-									)}
+									{currency((c.spent || 0) / 100, currencyCode)}
 								</div>
 							)}
 							<button
@@ -227,32 +224,31 @@ export function Categories({ onAfterChange }) {
 									className={kit.muted}
 									style={{ fontSize: 12 }}
 								>
-									Изменить %
+									Изменить сумму
 								</span>
-												<input
+								<input
 									type="number"
 									min="0"
-									max="100"
-													value={localEdits[c.id]?.percent ?? String(c.percent)}
-													onChange={(e) => {
-														const raw = e.target.value;
-														setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), percent: raw } }));
-														const cell = percentRefs.current.get(c.id) || { t: null, controller: null };
-														if (cell.t) clearTimeout(cell.t);
-														if (cell.controller) cell.controller.abort();
-														const controller = new AbortController();
-														cell.controller = controller;
-														const value = Math.max(0, Math.min(100, Number(raw) || 0));
-														cell.t = setTimeout(() => {
-															postAction("setCategoryPercent", { year, month, categoryId: c.id, percent: value, ownerId: ownerId || null }, { signal: controller.signal })
-																.then((snap) => setSnapshot(snap))
-																.catch(() => {})
-																.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), percent: undefined } })); });
-														}, 1000);
-														percentRefs.current.set(c.id, cell);
-													}}
+									value={localEdits[c.id]?.amount ?? String(Math.round((Number(c.amount)||0)/100))}
+									onChange={(e) => {
+										const raw = e.target.value;
+										setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), amount: raw } }));
+										const cell = percentRefs.current.get(c.id) || { t: null, controller: null };
+										if (cell.t) clearTimeout(cell.t);
+										if (cell.controller) cell.controller.abort();
+										const controller = new AbortController();
+										cell.controller = controller;
+										const valueCents = Math.max(0, Math.floor(Number(raw) * 100 || 0));
+										cell.t = setTimeout(() => {
+											postAction("setCategoryAmount", { year, month, categoryId: c.id, amount: valueCents, ownerId: ownerId || null }, { signal: controller.signal })
+												.then((snap) => setSnapshot(snap))
+												.catch(() => {})
+												.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), amount: undefined } })); });
+										}, 1000);
+										percentRefs.current.set(c.id, cell);
+									}}
 									className={kit.input}
-									style={{ width: 100 }}
+									style={{ width: 120 }}
 								/>
 								<span
 									className={`${kit.muted} ${kit.mlAuto}`}

@@ -17,15 +17,15 @@ export async function fetchSnapshot(year, month, signal, ownerId = null) {
 			income: 0,
 			currencyCode: "EUR",
 			categories: [
-				{ id: "food-local", name: "Еда", percent: 30, spent: 0 },
-				{ id: "rent-local", name: "Аренда", percent: 40, spent: 0 },
+				{ id: "food-local", name: "Еда", amount: 0, spent: 0 },
+				{ id: "rent-local", name: "Аренда", amount: 0, spent: 0 },
 				{
 					id: "transport-local",
 					name: "Транспорт",
-					percent: 10,
+					amount: 0,
 					spent: 0,
 				},
-				{ id: "fun-local", name: "Развлечения", percent: 10, spent: 0 },
+				{ id: "fun-local", name: "Развлечения", amount: 0, spent: 0 },
 			],
 		};
 	}
@@ -52,7 +52,7 @@ export async function postAction(action, payload, { signal } = {}) {
 		}
 		return data;
 	} catch (e) {
-		if (!String(e?.message || "").includes("Сумма процентов")) {
+		if (!String(e?.message || "").includes("Сумма по категориям")) {
 			alert("Сервер временно недоступен. Проверьте подключение к БД.");
 		}
 		throw e;

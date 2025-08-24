@@ -44,7 +44,7 @@ model Budget {
 model Category {
   id        String   @id @default(cuid())
   name      String
-  percent   Float    // 0..100
+  amount    Int      // nominal in cents
   isSaving  Boolean  @default(false)
   budget    Budget   @relation(fields: [budgetId], references: [id])
   budgetId  String
