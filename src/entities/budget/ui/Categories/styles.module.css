@@ -3,14 +3,15 @@
 	gap: var(--spacing-md);
 	padding: var(--spacing-lg);
 	background: var(--bg-secondary);
-	border: 1px solid var(--border-primary);
-	border-radius: var(--radius-md);
+	border: none;
+	border-radius: var(--radius-lg);
 	transition: all var(--transition-base);
+	box-shadow: var(--shadow-sm);
 }
 
 .categoryItem:hover {
-	border-color: var(--accent-primary);
-	box-shadow: 0 0 0 1px var(--accent-bg);
+	box-shadow: var(--shadow-md);
+	transform: translateY(-2px);
 }
 
 .topRow {

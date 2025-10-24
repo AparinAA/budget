@@ -5,11 +5,12 @@
 }
 
 .chartH {
-	height: 300px;
+	height: 320px;
 	background: var(--bg-secondary);
-	border: 1px solid var(--border-primary);
-	border-radius: var(--radius-md);
+	border: none;
+	border-radius: var(--radius-lg);
 	padding: var(--spacing-lg);
+	box-shadow: var(--shadow-sm);
 }
 
 @media (max-width: 768px) {
@@ -19,7 +20,7 @@
 	}
 	
 	.chartH {
-		height: 240px;
+		height: 260px;
 		padding: var(--spacing-md);
 	}
 }

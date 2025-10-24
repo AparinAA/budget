@@ -6,9 +6,10 @@
 	background: var(--bg-secondary);
 	border-top: 1px solid var(--border-primary);
 	display: none;
-	padding: var(--spacing-sm);
+	padding: var(--spacing-sm) var(--spacing-sm) calc(var(--spacing-sm) + env(safe-area-inset-bottom));
 	z-index: 1000;
-	box-shadow: var(--shadow-md);
+	box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+	backdrop-filter: blur(10px);
 }
 
 /* Показываем ТОЛЬКО на мобильных устройствах */
@@ -17,7 +18,7 @@
 		display: flex;
 		justify-content: space-around;
 		align-items: center;
-		gap: var(--spacing-sm);
+		gap: var(--spacing-xs);
 	}
 }
 
@@ -31,22 +32,24 @@
 .loginButton {
 	width: 100%;
 	padding: var(--spacing-lg);
-	background: var(--success);
-	color: white;
+	background: var(--accent-primary);
+	color: var(--tg-theme-button-text-color, white);
 	border: none;
 	border-radius: var(--radius-md);
-	font-size: 18px;
+	font-size: 17px;
 	font-weight: 600;
 	cursor: pointer;
-	transition: background var(--transition-base);
+	transition: all var(--transition-base);
+	box-shadow: var(--shadow-md);
 }
 
 .loginButton:hover {
-	background: var(--success-hover);
+	background: var(--accent-hover);
+	transform: scale(0.98);
 }
 
 .loginButton:active {
-	background: #1f7a2e;
+	transform: scale(0.95);
 }
 
 .navButton {
@@ -63,12 +66,17 @@
 	cursor: pointer;
 	border-radius: var(--radius-md);
 	transition: all var(--transition-base);
-	font-size: 12px;
+	font-size: 11px;
+	min-height: 54px;
 }
 
 .navButton:hover {
-	background: rgba(48, 54, 61, 0.5);
-	color: #c9d1d9;
+	background: var(--accent-bg);
+	color: var(--accent-primary);
+}
+
+.navButton:active {
+	transform: scale(0.95);
 }
 
 .navButton.active {
@@ -77,10 +85,11 @@
 }
 
 .navButton svg {
-	width: 24px;
-	height: 24px;
+	width: 26px;
+	height: 26px;
 }
 
 .navButton span {
 	font-weight: 500;
+	letter-spacing: 0.2px;
 }

@@ -3,11 +3,12 @@
 	align-items: center;
 	gap: var(--spacing-lg);
 	padding: var(--spacing-lg);
-	border: 1px solid var(--border-primary);
-	border-radius: var(--radius-md);
+	border: none;
+	border-radius: var(--radius-lg);
 	background: var(--bg-secondary);
 	margin-bottom: var(--spacing-lg);
 	flex-wrap: wrap;
+	box-shadow: var(--shadow-sm);
 }
 
 .leftSection {

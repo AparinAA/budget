@@ -1,33 +1,35 @@
-/* === Карточки === */
+/* === Карточки в стиле Telegram === */
 .card {
 	background: var(--bg-secondary);
-	border: 1px solid var(--border-primary);
-	border-radius: var(--radius-md);
+	border: none;
+	border-radius: var(--radius-lg);
 	padding: var(--spacing-lg);
 	transition: all var(--transition-base);
+	box-shadow: var(--shadow-sm);
 }
 
 .card:hover {
-	border-color: var(--border-secondary);
+	box-shadow: var(--shadow-md);
 }
 
 .cardTitle {
 	margin-bottom: var(--spacing-md);
 	font-weight: 600;
-	font-size: 16px;
+	font-size: 17px;
 	color: var(--text-primary);
 }
 
-/* === Инпуты === */
+/* === Инпуты в стиле Telegram === */
 .input {
 	background: var(--bg-primary);
 	border: 1px solid var(--border-primary);
 	color: var(--text-primary);
-	padding: 10px 12px;
+	padding: 12px 16px;
 	border-radius: var(--radius-md);
-	font-size: 14px;
+	font-size: 16px; /* Минимум 16px для предотвращения зума на iOS */
 	transition: all var(--transition-base);
 	outline: none;
+	box-shadow: var(--shadow-sm);
 }
 
 .input:focus {
@@ -39,64 +41,73 @@
 	color: var(--text-muted);
 }
 
-/* === Кнопки === */
+/* === Кнопки в стиле Telegram === */
 .button {
-	background: var(--bg-tertiary);
+	background: var(--bg-secondary);
 	color: var(--text-primary);
 	border: 1px solid var(--border-primary);
-	padding: 10px 16px;
+	padding: 12px 20px;
 	border-radius: var(--radius-md);
 	cursor: pointer;
-	font-size: 14px;
+	font-size: 15px;
 	font-weight: 500;
 	transition: all var(--transition-base);
 	outline: none;
+	text-align: center;
 }
 
 .button:hover {
-	background: rgba(48, 54, 61, 0.5);
-	border-color: var(--border-secondary);
+	background: var(--bg-tertiary);
+	transform: scale(0.98);
 }
 
 .button:active {
-	transform: scale(0.98);
+	transform: scale(0.95);
+	opacity: 0.8;
 }
 
 .buttonPrimary {
 	background: var(--accent-primary);
-	color: white;
+	color: var(--tg-theme-button-text-color, white);
 	border-color: var(--accent-primary);
+	box-shadow: var(--shadow-sm);
 }
 
 .buttonPrimary:hover {
 	background: var(--accent-hover);
 	border-color: var(--accent-hover);
+	box-shadow: var(--shadow-md);
 }
 
 .buttonSuccess {
 	background: var(--success);
 	color: white;
 	border-color: var(--success);
+	box-shadow: var(--shadow-sm);
 }
 
 .buttonSuccess:hover {
 	background: var(--success-hover);
 	border-color: var(--success-hover);
+	box-shadow: var(--shadow-md);
 }
 
 .buttonDanger {
 	background: var(--danger);
 	color: white;
 	border-color: var(--danger);
+	box-shadow: var(--shadow-sm);
 }
 
 .buttonDanger:hover {
 	background: var(--danger-hover);
 	border-color: var(--danger-hover);
+	box-shadow: var(--shadow-md);
 }
 
 .buttonSecondary {
 	background: var(--bg-secondary);
+	border-color: var(--border-primary);
 }
 
 .buttonSecondary {
@@ -132,11 +143,11 @@
 	color: var(--text-muted);
 }
 
-/* === Таблицы === */
+/* === Таблицы в стиле Telegram === */
 .tableWrap {
 	overflow-x: auto;
-	border-radius: var(--radius-md);
-	border: 1px solid var(--border-primary);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-sm);
 }
 
 .table {
@@ -147,9 +158,11 @@
 
 .tableHead {
 	color: var(--text-secondary);
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: 600;
 	background: var(--bg-tertiary);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
 }
 
 .td {
@@ -175,7 +188,7 @@
 }
 
 .tr:hover {
-	background: rgba(48, 54, 61, 0.3);
+	background: var(--bg-primary);
 }
 
 .tr:last-child .td {
@@ -222,15 +235,15 @@
 
 @media (hover: none) and (pointer: coarse) {
 	.button {
-		padding: 12px 16px;
-		min-height: 44px;
+		padding: 14px 20px;
+		min-height: 48px; /* Telegram стандарт для кнопок */
 	}
 }
 
 @media (max-width: 768px) {
 	.card {
 		padding: var(--spacing-md);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-md);
 	}
 	
 	.row,
@@ -239,11 +252,11 @@
 	}
 	
 	.label {
-		font-size: 13px;
+		font-size: 14px;
 	}
 	
 	.cardTitle {
-		font-size: 15px;
+		font-size: 16px;
 	}
 	
 	.fullOnMobile {
@@ -252,6 +265,7 @@
 	
 	.button {
 		width: auto;
+		font-size: 16px;
 	}
 	
 	.td,

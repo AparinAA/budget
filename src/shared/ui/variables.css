@@ -1,39 +1,48 @@
-/* Глобальные CSS переменные для всего приложения */
+/* Глобальные CSS переменные для всего приложения - Telegram стиль */
 :root {
-	/* Цвета фона */
-	--bg-primary: #0d1117;
-	--bg-secondary: #161b22;
-	--bg-tertiary: #21262d;
+	/* Telegram цвета */
+	--tg-theme-bg-color: #ffffff;
+	--tg-theme-text-color: #000000;
+	--tg-theme-hint-color: #999999;
+	--tg-theme-link-color: #2481cc;
+	--tg-theme-button-color: #2481cc;
+	--tg-theme-button-text-color: #ffffff;
+	--tg-theme-secondary-bg-color: #f4f4f5;
+	
+	/* Цвета фона - адаптируются под тему Telegram */
+	--bg-primary: var(--tg-theme-bg-color, #ffffff);
+	--bg-secondary: var(--tg-theme-secondary-bg-color, #f4f4f5);
+	--bg-tertiary: #e5e5ea;
 	
 	/* Границы */
-	--border-primary: #30363d;
-	--border-secondary: #21262d;
+	--border-primary: #d1d1d6;
+	--border-secondary: #e5e5ea;
 	
 	/* Текст */
-	--text-primary: #e6edf3;
-	--text-secondary: #7d8590;
-	--text-muted: #7d8590;
+	--text-primary: var(--tg-theme-text-color, #000000);
+	--text-secondary: var(--tg-theme-hint-color, #999999);
+	--text-muted: var(--tg-theme-hint-color, #999999);
 	
-	/* Акценты */
-	--accent-primary: #58a6ff;
-	--accent-hover: #79c0ff;
-	--accent-bg: rgba(88, 166, 255, 0.1);
+	/* Акценты - используем цвета кнопок Telegram */
+	--accent-primary: var(--tg-theme-button-color, #2481cc);
+	--accent-hover: #1a6bb5;
+	--accent-bg: rgba(36, 129, 204, 0.1);
 	
 	/* Цвета статусов */
-	--success: #238636;
-	--success-hover: #2ea043;
-	--danger: #da3633;
-	--danger-hover: #f85149;
+	--success: #34c759;
+	--success-hover: #28a745;
+	--danger: #ff3b30;
+	--danger-hover: #e62e24;
 	
-	/* Тени */
-	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-	--shadow-md: 0 2px 10px rgba(0, 0, 0, 0.5);
-	--shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.6);
+	/* Тени - легче для светлой темы */
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+	--shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
+	--shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
 	
-	/* Радиусы */
-	--radius-sm: 6px;
-	--radius-md: 8px;
-	--radius-lg: 12px;
+	/* Радиусы - более скругленные как в Telegram */
+	--radius-sm: 8px;
+	--radius-md: 12px;
+	--radius-lg: 16px;
 	
 	/* Отступы */
 	--spacing-xs: 4px;
@@ -46,4 +55,24 @@
 	--transition-fast: 0.15s ease;
 	--transition-base: 0.2s ease;
 	--transition-slow: 0.3s ease;
+}
+
+/* Темная тема Telegram */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--tg-theme-bg-color: #18222d;
+		--tg-theme-text-color: #ffffff;
+		--tg-theme-hint-color: #7d8b99;
+		--tg-theme-link-color: #62bcf9;
+		--tg-theme-button-color: #5ac8fa;
+		--tg-theme-button-text-color: #ffffff;
+		--tg-theme-secondary-bg-color: #131d28;
+		
+		--bg-tertiary: #0f1923;
+		--border-primary: #293845;
+		--border-secondary: #1f2a37;
+		--accent-hover: #7dd3fc;
+		--success: #32d74b;
+		--danger: #ff453a;
+	}
 }
