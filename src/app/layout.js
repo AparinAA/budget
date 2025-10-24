@@ -5,20 +5,19 @@ import "@/shared/ui/variables.css";
 export const metadata = {
 	title: "Семейный бюджет",
 	description: "Планирование и контроль расходов",
-	viewport: {
-		width: "device-width",
-		initialScale: 1,
-		maximumScale: 1,
-		userScalable: false,
-	},
 };
 
 export default function RootLayout({ children }) {
 	return (
 		<html lang="ru">
 			<head>
+				<title>Семейный бюджет</title>
+				<meta
+					name="viewport"
+					content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+				/>
 				<Script
-					src="https://telegram.org/js/telegram-web-app.js"
+					src="https://telegram.org/js/telegram-web-app.js?59"
 					strategy="beforeInteractive"
 				/>
 			</head>
@@ -31,9 +30,10 @@ export default function RootLayout({ children }) {
 				  
 				  try {
 				    // Инициализация и расширение на весь экран
-				    tg.ready();
-				    tg.expand();
-				    
+
+				    tg?.ready();
+				    tg?.expand();
+
 				    // Включаем полноэкранный режим
 				    if (tg.requestFullscreen) {
 				      tg.requestFullscreen();
@@ -76,7 +76,7 @@ export default function RootLayout({ children }) {
 					style={{
 						maxWidth: 1100,
 						margin: "0 auto",
-						padding: "var(--spacing-lg)",
+						padding: "var(--spacing-lg) var(--spacing-md)",
 					}}
 				>
 					<header className={styles.header}>

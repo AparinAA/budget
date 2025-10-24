@@ -35,7 +35,7 @@ export function MobileNavigation() {
 		try {
 			await authAction("logout");
 		} catch {}
-		router.push("/view/auth");
+		router.push("/auth");
 	};
 
 	if (loading) {
@@ -48,7 +48,7 @@ export function MobileNavigation() {
 			<nav className={styles.mobileNav}>
 				<button
 					className={styles.loginButton}
-					onClick={() => router.push("/view/auth")}
+					onClick={() => router.push("/auth")}
 				>
 					Войти
 				</button>
@@ -60,8 +60,8 @@ export function MobileNavigation() {
 	return (
 		<nav className={styles.mobileNav}>
 			<button
-				className={`${styles.navButton} ${pathname === "/view/budgets" ? styles.active : ""}`}
-				onClick={() => router.push("/view/budgets")}
+				className={`${styles.navButton} ${pathname === "/budgets" ? styles.active : ""}`}
+				onClick={() => router.push("/budgets")}
 			>
 				<svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
 					<path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zM1 10.5A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"/>
@@ -69,8 +69,8 @@ export function MobileNavigation() {
 				<span>Бюджеты</span>
 			</button>
 			<button
-				className={`${styles.navButton} ${pathname === "/view" ? styles.active : ""}`}
-				onClick={() => router.push("/view")}
+				className={`${styles.navButton} ${pathname === "/" ? styles.active : ""}`}
+				onClick={() => router.push("/")}
 			>
 				<svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
 					<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>

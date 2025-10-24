@@ -66,7 +66,7 @@ export function BudgetHeader({ year, month, currencyCode, stat, ownerId }) {
         try {
             await authAction("logout");
         } catch {}
-        if (typeof window !== "undefined") window.location.href = "/view/auth";
+        if (typeof window !== "undefined") window.location.href = "/auth";
     };
 
     const [shareOpen, setShareOpen] = useState(false);
@@ -76,7 +76,7 @@ export function BudgetHeader({ year, month, currencyCode, stat, ownerId }) {
     return (
         <header className={styles.header}>
             <div className={styles.leftSection}>
-                <Link href="/view/budgets" className={`${kit.button} ${styles.budgetsLink}`}>
+                <Link href="/budgets" className={`${kit.button} ${styles.budgetsLink}`}>
                     Доступные бюджеты
                 </Link>
                 <div className={styles.title}>

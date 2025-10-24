@@ -23,17 +23,17 @@ export async function middleware(req) {
 		}
 	}
 
-	if (pathname.startsWith("/view/auth")) {
+	if (pathname.startsWith("/auth")) {
 		const authed = await checkAuth();
-		if (authed) return NextResponse.redirect(new URL("/view", req.url));
+		if (authed) return NextResponse.redirect(new URL("/", req.url));
 		return NextResponse.next();
 	}
 
 	const authed = await checkAuth();
-	if (!authed) return NextResponse.redirect(new URL("/view/auth", req.url));
+	if (!authed) return NextResponse.redirect(new URL("/auth", req.url));
 	return NextResponse.next();
 }
 
 export const config = {
-	matcher: ["/", "/view/:path*"],
+	matcher: ["/", "/budgets", "/auth"],
 };

@@ -13,3 +13,11 @@ export async function authAction(action, payload) {
 	if (!r.ok) throw new Error(data?.error || "Auth error");
 	return data;
 }
+
+export async function signIn(email, password) {
+	return authAction("login", { email, password });
+}
+
+export async function signUp(email, password) {
+	return authAction("register", { email, password });
+}

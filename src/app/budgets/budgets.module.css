@@ -1,0 +1,59 @@
+.budgetsPage {
+	padding: var(--spacing-lg);
+}
+
+.title {
+	font-size: 28px;
+	font-weight: 600;
+	color: var(--text-primary);
+	margin-bottom: var(--spacing-lg);
+}
+
+.budgetsList {
+	display: grid;
+	gap: var(--spacing-md);
+}
+
+.budgetCard {
+	background: var(--bg-secondary);
+	border-radius: var(--radius-lg);
+	padding: var(--spacing-lg);
+	box-shadow: var(--shadow-md);
+}
+
+.budgetInfo {
+	margin-bottom: var(--spacing-md);
+}
+
+.budgetInfo h3 {
+	font-size: 20px;
+	font-weight: 600;
+	color: var(--text-primary);
+	margin-bottom: var(--spacing-sm);
+}
+
+.budgetInfo p {
+	color: var(--text-secondary);
+	margin: var(--spacing-xs) 0;
+}
+
+.budgetActions {
+	display: flex;
+	gap: var(--spacing-sm);
+	flex-wrap: wrap;
+}
+
+.shareForm {
+	margin-top: var(--spacing-md);
+	display: flex;
+	gap: var(--spacing-sm);
+	flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+	.budgetActions button,
+	.shareForm button,
+	.shareForm input {
+		flex: 1 1 100%;
+	}
+}
