@@ -53,6 +53,12 @@ export default function RootLayout({ children }) {
 				      if (theme.secondary_bg_color) root.style.setProperty('--tg-theme-secondary-bg-color', theme.secondary_bg_color);
 				    }
 				    
+				    // Устанавливаем safe area для полноэкранного режима
+				    if (tg.safeAreaInset) {
+				      root.style.setProperty('--tg-safe-area-inset-top', tg.safeAreaInset.top + 'px');
+				      root.style.setProperty('--tg-safe-area-inset-bottom', tg.safeAreaInset.bottom + 'px');
+				    }
+				    
 				    // Включаем закрытие приложения при свайпе вниз
 				    tg.enableClosingConfirmation();
 				    
@@ -71,14 +77,16 @@ export default function RootLayout({ children }) {
 					color: "var(--text-primary)",
 					margin: 0,
 					padding: 0,
+					paddingTop: "env(safe-area-inset-top)",
+					paddingBottom: "env(safe-area-inset-bottom)",
 				}}
 			>
 				<div
 					style={{
 						maxWidth: 1100,
 						margin: "0 auto",
-						padding: "var(--spacing-lg) 1px",
-						paddingBottom: "80px", // Отступ снизу для мобильной навигации
+						padding: "calc(var(--tg-safe-area-inset-top, 0px) + var(--spacing-lg)) 1px var(--spacing-lg) 1px",
+						paddingBottom: "calc(80px + env(safe-area-inset-bottom))", // Отступ снизу для мобильной навигации + safe area
 					}}
 				>
 					<header className={styles.header}>
