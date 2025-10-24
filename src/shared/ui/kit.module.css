@@ -1,46 +1,119 @@
+/* === Карточки === */
 .card {
-	background: #0f1621;
-	border: 1px solid #1f2a37;
-	border-radius: 12px;
-	padding: 16px;
+	background: var(--bg-secondary);
+	border: 1px solid var(--border-primary);
+	border-radius: var(--radius-md);
+	padding: var(--spacing-lg);
+	transition: all var(--transition-base);
+}
+
+.card:hover {
+	border-color: var(--border-secondary);
 }
 
 .cardTitle {
-	margin-bottom: 8px;
+	margin-bottom: var(--spacing-md);
 	font-weight: 600;
+	font-size: 16px;
+	color: var(--text-primary);
 }
 
+/* === Инпуты === */
 .input {
-	background: #0b1420;
-	border: 1px solid #1f2a37;
-	color: #e6edf3;
-	padding: 8px 10px;
-	border-radius: 8px;
+	background: var(--bg-primary);
+	border: 1px solid var(--border-primary);
+	color: var(--text-primary);
+	padding: 10px 12px;
+	border-radius: var(--radius-md);
+	font-size: 14px;
+	transition: all var(--transition-base);
+	outline: none;
 }
 
+.input:focus {
+	border-color: var(--accent-primary);
+	box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.input::placeholder {
+	color: var(--text-muted);
+}
+
+/* === Кнопки === */
 .button {
-	background: #1f2a37;
-	color: #e6edf3;
-	border: 1px solid #2a3a4a;
-	padding: 8px 12px;
-	border-radius: 8px;
+	background: var(--bg-tertiary);
+	color: var(--text-primary);
+	border: 1px solid var(--border-primary);
+	padding: 10px 16px;
+	border-radius: var(--radius-md);
 	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all var(--transition-base);
+	outline: none;
+}
+
+.button:hover {
+	background: rgba(48, 54, 61, 0.5);
+	border-color: var(--border-secondary);
+}
+
+.button:active {
+	transform: scale(0.98);
+}
+
+.buttonPrimary {
+	background: var(--accent-primary);
+	color: white;
+	border-color: var(--accent-primary);
+}
+
+.buttonPrimary:hover {
+	background: var(--accent-hover);
+	border-color: var(--accent-hover);
+}
+
+.buttonSuccess {
+	background: var(--success);
+	color: white;
+	border-color: var(--success);
+}
+
+.buttonSuccess:hover {
+	background: var(--success-hover);
+	border-color: var(--success-hover);
+}
+
+.buttonDanger {
+	background: var(--danger);
+	color: white;
+	border-color: var(--danger);
+}
+
+.buttonDanger:hover {
+	background: var(--danger-hover);
+	border-color: var(--danger-hover);
 }
 
 .buttonSecondary {
-	background: #2b3947;
+	background: var(--bg-secondary);
 }
 
+.buttonSecondary {
+	background: var(--bg-secondary);
+}
+
+/* === Layout === */
 .row {
 	display: flex;
-	gap: 8px;
+	gap: var(--spacing-sm);
 	align-items: center;
 	flex-wrap: wrap;
 }
 
 .rowLg {
 	display: flex;
-	gap: 12px;
+	gap: var(--spacing-md);
 	align-items: center;
 	flex-wrap: wrap;
 }
@@ -49,72 +122,185 @@
 	margin-left: auto;
 }
 
+/* === Текст === */
 .label {
 	font-size: 14px;
-	color: #9fb3c8;
-}
-.muted {
-	color: #9fb3c8;
+	color: var(--text-secondary);
 }
 
+.muted {
+	color: var(--text-muted);
+}
+
+/* === Таблицы === */
 .tableWrap {
 	overflow-x: auto;
+	border-radius: var(--radius-md);
+	border: 1px solid var(--border-primary);
 }
+
 .table {
 	width: 100%;
 	border-collapse: collapse;
-}
-.tableHead {
-	color: #9fb3c8;
-	font-size: 14px;
-}
-.td {
-	padding: 8px;
-}
-.theadTh {
-	padding: 8px;
-}
-.empty {
-	color: #9fb3c8;
-	text-align: center;
-	padding: 12px;
-}
-.tr {
-	color: #e6edf3;
-	font-size: 15px;
-}
-.trClickable {
-	color: #e6edf3;
-	font-size: 15px;
-	cursor: pointer;
+	background: var(--bg-secondary);
 }
 
-/* Touch-friendly checkboxes */
+.tableHead {
+	color: var(--text-secondary);
+	font-size: 14px;
+	font-weight: 600;
+	background: var(--bg-tertiary);
+}
+
+.td {
+	padding: var(--spacing-md);
+	border-bottom: 1px solid var(--border-primary);
+}
+
+.theadTh {
+	padding: var(--spacing-md);
+	text-align: left;
+}
+
+.empty {
+	color: var(--text-muted);
+	text-align: center;
+	padding: var(--spacing-xl);
+}
+
+.tr {
+	color: var(--text-primary);
+	font-size: 15px;
+	transition: background var(--transition-base);
+}
+
+.tr:hover {
+	background: rgba(48, 54, 61, 0.3);
+}
+
+.tr:last-child .td {
+	border-bottom: none;
+}
+
+.trClickable {
+	color: var(--text-primary);
+	font-size: 15px;
+	cursor: pointer;
+	transition: background var(--transition-base);
+}
+
+.trClickable:hover {
+	background: var(--accent-bg);
+}
+
+/* === Чекбоксы === */
 .checkbox {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
+	gap: var(--spacing-sm);
 	padding: 6px 8px;
-	border-radius: 6px;
-}
-.checkbox input[type="checkbox"] {
-	width: 22px;
-	height: 22px;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	transition: background var(--transition-base);
 }
 
-/* Mobile helpers */
-/* placeholder utility; styles applied in media block */
-.fullOnMobile { width: auto; }
+.checkbox:hover {
+	background: rgba(48, 54, 61, 0.3);
+}
+
+.checkbox input[type="checkbox"] {
+	width: 20px;
+	height: 20px;
+	cursor: pointer;
+	accent-color: var(--accent-primary);
+}
+
+/* === Мобильная адаптация === */
+.fullOnMobile {
+	width: auto;
+}
 
 @media (hover: none) and (pointer: coarse) {
-	.button { padding: 10px 14px; }
+	.button {
+		padding: 12px 16px;
+		min-height: 44px;
+	}
 }
 
-@media (max-width: 900px) {
-	.card { padding: 12px; }
-	.row, .rowLg { gap: 10px; }
-	.label { font-size: 13px; }
-	.cardTitle { font-size: 16px; }
-	.fullOnMobile { width: 100% !important; }
-	.button { width: auto; }
+@media (max-width: 768px) {
+	.card {
+		padding: var(--spacing-md);
+		border-radius: var(--radius-sm);
+	}
+	
+	.row,
+	.rowLg {
+		gap: var(--spacing-sm);
+	}
+	
+	.label {
+		font-size: 13px;
+	}
+	
+	.cardTitle {
+		font-size: 15px;
+	}
+	
+	.fullOnMobile {
+		width: 100% !important;
+	}
+	
+	.button {
+		width: auto;
+	}
+	
+	.td,
+	.theadTh {
+		padding: var(--spacing-sm);
+	}
+}
+
+/* === Мобильная адаптация === */
+.fullOnMobile {
+	width: auto;
+}
+
+@media (hover: none) and (pointer: coarse) {
+	.button {
+		padding: 12px 16px;
+		min-height: 44px;
+	}
+}
+
+@media (max-width: 768px) {
+	.card {
+		padding: 12px;
+		border-radius: 6px;
+	}
+	
+	.row,
+	.rowLg {
+		gap: 8px;
+	}
+	
+	.label {
+		font-size: 13px;
+	}
+	
+	.cardTitle {
+		font-size: 15px;
+	}
+	
+	.fullOnMobile {
+		width: 100% !important;
+	}
+	
+	.button {
+		width: auto;
+	}
+	
+	.td,
+	.theadTh {
+		padding: 8px;
+	}
 }

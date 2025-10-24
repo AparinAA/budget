@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import kit from "@/shared/ui/kit.module.css";
+import styles from "./styles.module.css";
 import { currency as fmt } from "@/shared/lib/format";
 import { authAction, getMe } from "@/shared/api/auth";
 import { shareBudgetWith, listAccessibleBudgets } from "@/shared/api/budget";
@@ -73,50 +74,39 @@ export function BudgetHeader({ year, month, currencyCode, stat, ownerId }) {
 
     const isOwner = !ownerId || (me?.id && ownerId === me.id);
     return (
-        <header style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 16,
-            padding: "12px 16px",
-            border: "1px solid #30363d",
-            borderRadius: 8,
-            background: "#0d1117",
-            marginBottom: 16,
-            flexWrap: "wrap"
-        }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <Link href="/view/budgets" className={kit.button} style={{ textDecoration: "none" }}>
+        <header className={styles.header}>
+            <div className={styles.leftSection}>
+                <Link href="/view/budgets" className={`${kit.button} ${styles.budgetsLink}`}>
                     Доступные бюджеты
                 </Link>
-                <div style={{ fontWeight: 600, fontSize: 16 }}>
+                <div className={styles.title}>
                     Бюджет · {MONTHS[(month - 1) % 12]} {year}
                 </div>
-                <div className={kit.muted}>
-                    Владелец: <b style={{ color: "#e6edf3" }}>{ownerEmail || (isOwner ? (me?.email || "Я") : "—")}</b>
+                <div className={`${kit.muted} ${styles.owner}`}>
+                    Владелец: <b className={styles.ownerName}>{ownerEmail || (isOwner ? (me?.email || "Я") : "—")}</b>
                 </div>
             </div>
-            <div className={kit.label} style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <div className={`${kit.label} ${styles.stats}`}>
                 <span>
-                    Доход: <b style={{ color: "#e6edf3" }}>{fmt(totalIncome / 100, currencyCode)}</b>
+                    Доход: <b className={styles.statValue}>{fmt(totalIncome / 100, currencyCode)}</b>
                 </span>
                 <span>
-                    Расходы: <b style={{ color: "#e6edf3" }}>{fmt(totalExpenses / 100, currencyCode)}</b>
+                    Расходы: <b className={styles.statValue}>{fmt(totalExpenses / 100, currencyCode)}</b>
                 </span>
                 <span>
-                    Остаток: <b style={{ color: "#e6edf3" }}>{fmt(remaining / 100, currencyCode)}</b>
+                    Остаток: <b className={styles.statValue}>{fmt(remaining / 100, currencyCode)}</b>
                 </span>
             </div>
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <div className={styles.rightSection}>
                 {isOwner && (
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <div className={styles.shareSection}>
                     {shareOpen && (
                         <>
                             <input
                                 value={shareEmail}
                                 onChange={(e) => setShareEmail(e.target.value)}
                                 placeholder="email пользователя"
-                                className={kit.input}
-                                style={{ width: 220 }}
+                                className={`${kit.input} ${styles.shareInput}`}
                             />
                             <button
                                 className={kit.button}
@@ -143,11 +133,11 @@ export function BudgetHeader({ year, month, currencyCode, stat, ownerId }) {
                 </div>
                 )}
                 {me?.email ? (
-                    <span className={kit.muted} title={me.email} style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span className={`${kit.muted} ${styles.email}`} title={me.email}>
                         {me.email}
                     </span>
                 ) : null}
-                <button onClick={handleLogout} className={kit.button}>
+                <button onClick={handleLogout} className={`${kit.button} ${styles.logoutButton}`}>
                     Выйти
                 </button>
             </div>

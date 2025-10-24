@@ -1,0 +1,86 @@
+.mobileNav {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background: var(--bg-secondary);
+	border-top: 1px solid var(--border-primary);
+	display: none;
+	padding: var(--spacing-sm);
+	z-index: 1000;
+	box-shadow: var(--shadow-md);
+}
+
+/* Показываем ТОЛЬКО на мобильных устройствах */
+@media (max-width: 768px) {
+	.mobileNav {
+		display: flex;
+		justify-content: space-around;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+}
+
+/* На десктопе явно скрываем */
+@media (min-width: 769px) {
+	.mobileNav {
+		display: none !important;
+	}
+}
+
+.loginButton {
+	width: 100%;
+	padding: var(--spacing-lg);
+	background: var(--success);
+	color: white;
+	border: none;
+	border-radius: var(--radius-md);
+	font-size: 18px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background var(--transition-base);
+}
+
+.loginButton:hover {
+	background: var(--success-hover);
+}
+
+.loginButton:active {
+	background: #1f7a2e;
+}
+
+.navButton {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	padding: var(--spacing-sm);
+	background: transparent;
+	border: none;
+	color: var(--text-secondary);
+	cursor: pointer;
+	border-radius: var(--radius-md);
+	transition: all var(--transition-base);
+	font-size: 12px;
+}
+
+.navButton:hover {
+	background: rgba(48, 54, 61, 0.5);
+	color: #c9d1d9;
+}
+
+.navButton.active {
+	color: var(--accent-primary);
+	background: var(--accent-bg);
+}
+
+.navButton svg {
+	width: 24px;
+	height: 24px;
+}
+
+.navButton span {
+	font-weight: 500;
+}

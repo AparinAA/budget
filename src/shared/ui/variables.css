@@ -1,0 +1,49 @@
+/* Глобальные CSS переменные для всего приложения */
+:root {
+	/* Цвета фона */
+	--bg-primary: #0d1117;
+	--bg-secondary: #161b22;
+	--bg-tertiary: #21262d;
+	
+	/* Границы */
+	--border-primary: #30363d;
+	--border-secondary: #21262d;
+	
+	/* Текст */
+	--text-primary: #e6edf3;
+	--text-secondary: #7d8590;
+	--text-muted: #7d8590;
+	
+	/* Акценты */
+	--accent-primary: #58a6ff;
+	--accent-hover: #79c0ff;
+	--accent-bg: rgba(88, 166, 255, 0.1);
+	
+	/* Цвета статусов */
+	--success: #238636;
+	--success-hover: #2ea043;
+	--danger: #da3633;
+	--danger-hover: #f85149;
+	
+	/* Тени */
+	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+	--shadow-md: 0 2px 10px rgba(0, 0, 0, 0.5);
+	--shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.6);
+	
+	/* Радиусы */
+	--radius-sm: 6px;
+	--radius-md: 8px;
+	--radius-lg: 12px;
+	
+	/* Отступы */
+	--spacing-xs: 4px;
+	--spacing-sm: 8px;
+	--spacing-md: 12px;
+	--spacing-lg: 16px;
+	--spacing-xl: 24px;
+	
+	/* Переходы */
+	--transition-fast: 0.15s ease;
+	--transition-base: 0.2s ease;
+	--transition-slow: 0.3s ease;
+}

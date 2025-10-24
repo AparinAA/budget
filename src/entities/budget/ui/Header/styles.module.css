@@ -1,0 +1,127 @@
+.header {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-lg);
+	padding: var(--spacing-lg);
+	border: 1px solid var(--border-primary);
+	border-radius: var(--radius-md);
+	background: var(--bg-secondary);
+	margin-bottom: var(--spacing-lg);
+	flex-wrap: wrap;
+}
+
+.leftSection {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-md);
+	flex-wrap: wrap;
+}
+
+.budgetsLink {
+	text-decoration: none;
+}
+
+.title {
+	font-weight: 600;
+	font-size: 16px;
+	color: var(--text-primary);
+}
+
+.owner {
+	color: var(--text-secondary);
+	font-size: 14px;
+}
+
+.ownerName {
+	color: var(--text-primary);
+}
+
+.stats {
+	display: flex;
+	gap: var(--spacing-lg);
+	flex-wrap: wrap;
+	font-size: 14px;
+	color: var(--text-secondary);
+}
+
+.statValue {
+	color: var(--text-primary);
+	font-weight: 500;
+}
+
+.rightSection {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	flex-wrap: wrap;
+}
+
+.shareSection {
+	display: flex;
+	gap: var(--spacing-sm);
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.shareInput {
+	width: 220px;
+	min-width: 180px;
+}
+
+.email {
+	max-width: 200px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--text-secondary);
+	font-size: 14px;
+}
+
+/* Скрываем кнопки навигации только на мобильных устройствах */
+@media (max-width: 768px) {
+	.budgetsLink,
+	.logoutButton {
+		display: none;
+	}
+	
+	.header {
+		padding: var(--spacing-md);
+		gap: var(--spacing-md);
+	}
+	
+	.leftSection {
+		gap: var(--spacing-sm);
+	}
+	
+	.stats {
+		gap: var(--spacing-md);
+		font-size: 13px;
+	}
+	
+	.title {
+		font-size: 15px;
+	}
+	
+	.owner {
+		font-size: 13px;
+	}
+	
+	.rightSection {
+		margin-left: 0;
+		width: 100%;
+	}
+	
+	.shareInput {
+		flex: 1;
+		min-width: 0;
+	}
+}
+
+/* На десктопе показываем кнопки */
+@media (min-width: 769px) {
+	.budgetsLink,
+	.logoutButton {
+		display: inline-block;
+	}
+}

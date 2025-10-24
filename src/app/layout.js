@@ -1,4 +1,7 @@
 import Script from "next/script";
+import styles from "./layout.module.css";
+import "@/shared/ui/variables.css";
+
 export const metadata = {
 	title: "Семейный бюджет",
 	description: "Планирование и контроль расходов",
@@ -7,10 +10,6 @@ export const metadata = {
 export default function RootLayout({ children }) {
 	return (
 		<html lang="ru">
-			<Script
-				src="https://telegram.org/js/telegram-web-app.js?59"
-				strategy="beforeInteractive"
-			/>
 			<Script id="tg-init" strategy="afterInteractive">
 				{`
 				(function(){
@@ -20,6 +19,7 @@ export default function RootLayout({ children }) {
 				  try {
 				    tg.ready();
 				    tg.expand();
+					tg.requestFullscreen();
 				  } catch {}
 				})();
 				`}
@@ -29,48 +29,27 @@ export default function RootLayout({ children }) {
 					fontFamily:
 						"system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
 					fontSize: 14,
-					background: "#0b0f14",
-					color: "#e6edf3",
+					background: "var(--bg-primary)",
+					color: "var(--text-primary)",
+					margin: 0,
+					padding: 0,
 				}}
 			>
 				<div
 					style={{
 						maxWidth: 1100,
 						margin: "0 auto",
-						padding: "24px",
+						padding: "var(--spacing-lg)",
 					}}
 				>
-					<header
-						style={{
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "space-between",
-							marginBottom: 24,
-						}}
-					>
-						<h1 style={{ fontSize: 24, fontWeight: 600 }}>
+					<header className={styles.header}>
+						<h1 className={styles.title}>
 							Семейный бюджет
 						</h1>
-						<AuthWidget />
 					</header>
 					{children}
 				</div>
 			</body>
 		</html>
-	);
-}
-
-function AuthWidget() {
-	return (
-		<iframe
-			src="/view/auth"
-			style={{
-				border: "none",
-				background: "transparent",
-				height: 36,
-				width: 420,
-			}}
-			title="auth"
-		/>
 	);
 }

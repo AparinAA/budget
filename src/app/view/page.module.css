@@ -1,4 +1,10 @@
 .main {
 	display: grid;
-	gap: 24px;
+	gap: var(--spacing-lg);
+}
+
+@media (max-width: 768px) {
+	.main {
+		gap: var(--spacing-md);
+	}
 }

@@ -1,0 +1,18 @@
+.content {
+	/* По умолчанию без padding */
+	padding-bottom: 0;
+}
+
+/* Добавляем padding снизу только на мобильных, чтобы контент не закрывался навигацией */
+@media (max-width: 768px) {
+	.content {
+		padding-bottom: 70px; /* Высота мобильной навигации + отступ */
+	}
+}
+
+/* На десктопе явно убираем padding */
+@media (min-width: 769px) {
+	.content {
+		padding-bottom: 0;
+	}
+}
