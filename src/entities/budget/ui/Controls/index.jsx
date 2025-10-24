@@ -16,7 +16,6 @@ export function Controls({ onAfterChange, totalRemaining }) {
 	} = useBudgetStore();
 	const [incomeRub, setIncomeRub] = useState("");
 	const [newCat, setNewCat] = useState({ name: "", amount: "" });
-	const [expense, setExpense] = useState({ catId: "", amount: "" });
 
 	useEffect(() => {
 		setIncomeRub(String(Math.round((income || 0) / 100)) || "");
@@ -36,25 +35,6 @@ export function Controls({ onAfterChange, totalRemaining }) {
 				setSnapshot(snap);
 				onAfterChange?.();
 				setNewCat({ name: "", amount: "" });
-			})
-			.catch(() => {});
-	}
-
-	function handleAddExpense(e) {
-		e.preventDefault();
-		if (!expense.catId || !expense.amount) return;
-		const amountCents = Math.floor(Number(expense.amount) * 100);
-		postAction("addExpense", {
-			year,
-			month,
-			categoryId: expense.catId,
-			amount: amountCents,
-			ownerId: ownerId || null,
-		})
-			.then((snap) => {
-				setSnapshot(snap);
-				onAfterChange?.();
-				setExpense({ catId: "", amount: "" });
 			})
 			.catch(() => {});
 	}
@@ -139,38 +119,6 @@ export function Controls({ onAfterChange, totalRemaining }) {
 				/>
 				<button type="submit" className={kit.button}>
 					Добавить категорию
-				</button>
-			</form>
-
-	    <form onSubmit={handleAddExpense} className={kit.row}>
-				<select
-					value={expense.catId}
-					onChange={(e) =>
-						setExpense((s) => ({ ...s, catId: e.target.value }))
-					}
-		    className={kit.input}
-		    style={{ minWidth: 220, flex: 1 }}
-				>
-					<option value="">Выбрать категорию</option>
-					{categories.map((c) => (
-						<option key={c.id} value={c.id}>
-							{c.name}
-						</option>
-					))}
-				</select>
-				<input
-					value={expense.amount}
-					onChange={(e) =>
-						setExpense((s) => ({ ...s, amount: e.target.value }))
-					}
-					type="number"
-					min="0"
-					placeholder="Сумма траты"
-		    className={kit.input}
-		    style={{ width: 140 }}
-				/>
-				<button type="submit" className={kit.button}>
-					Добавить расход
 				</button>
 			</form>
 		</section>

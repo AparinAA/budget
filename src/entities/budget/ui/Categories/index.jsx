@@ -6,6 +6,7 @@ import { COLORS } from "@/shared/ui/colors";
 import { currency } from "@/shared/lib/format";
 import { useBudgetStore } from "@/shared/store/budgetStore";
 import { postAction } from "@/shared/api/budget";
+import { ExpenseModal } from "@/shared/ui/ExpenseModal";
 
 export function Categories({ onAfterChange }) {
 	const {
@@ -37,6 +38,8 @@ export function Categories({ onAfterChange }) {
 
 	// Локальные правки для мгновенного отображения без ожидания сети
 	const [localEdits, setLocalEdits] = useState({}); // { [catId]: { percent?: string, isSaving?: boolean, rolloverEnabled?: boolean, rolloverTargetId?: string|null } }
+	const [expenseModal, setExpenseModal] = useState({ isOpen: false, categoryId: null, categoryName: "" });
+
 	useEffect(() => {
 		setLocalEdits((prev) => {
 			const next = {};
@@ -68,7 +71,12 @@ export function Categories({ onAfterChange }) {
 										background: COLORS[idx % COLORS.length],
 									}}
 								/>
-								<div style={{ fontWeight: 500 }}>{c.name}</div>
+								<div 
+									className={styles.categoryName}
+									onClick={() => setExpenseModal({ isOpen: true, categoryId: c.id, categoryName: c.name })}
+								>
+									{c.name}
+								</div>
 								{(() => {
 									const active = localEdits[c.id]?.isSaving ?? !!c.isSaving;
 									return (
@@ -269,6 +277,16 @@ export function Categories({ onAfterChange }) {
 					</div>
 				)}
 			</div>
+
+			<ExpenseModal
+				isOpen={expenseModal.isOpen}
+				onClose={() => {
+					setExpenseModal({ isOpen: false, categoryId: null, categoryName: "" });
+					onAfterChange?.();
+				}}
+				categoryId={expenseModal.categoryId}
+				categoryName={expenseModal.categoryName}
+			/>
 		</section>
 	);
 }
