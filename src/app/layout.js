@@ -32,13 +32,13 @@ export default function RootLayout({ children }) {
 				  try {
 				    // Инициализация и расширение на весь экран
 
-				    tg?.ready();
-				    tg?.expand();
+				    // tg?.ready();
+				    // tg?.expand();
 
-				    // Включаем полноэкранный режим
-				    if (tg.requestFullscreen) {
-				      tg.requestFullscreen();
-				    }
+				    // // Включаем полноэкранный режим
+				    // if (tg.requestFullscreen) {
+				    //   tg.requestFullscreen();
+				    // }
 				    
 				    // Применяем цвета темы Telegram к CSS переменным
 				    const root = document.documentElement;
