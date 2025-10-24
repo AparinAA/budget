@@ -60,7 +60,7 @@ export default function RootLayout({ children }) {
 				    }
 				    
 				    // Включаем закрытие приложения при свайпе вниз
-				    tg.enableClosingConfirmation();
+				    // tg.enableClosingConfirmation();
 				    
 				  } catch (e) {
 				    console.error('Telegram WebApp init error:', e);
