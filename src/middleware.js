@@ -29,8 +29,11 @@ export async function middleware(req) {
 		return NextResponse.next();
 	}
 
+	// Для всех остальных защищенных маршрутов
 	const authed = await checkAuth();
 	if (!authed) return NextResponse.redirect(new URL("/auth", req.url));
+	
+	// Авторизованный пользователь может посещать любые защищенные страницы
 	return NextResponse.next();
 }
 

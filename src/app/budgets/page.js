@@ -16,7 +16,7 @@ export default function BudgetsPage() {
 	useEffect(() => {
 		getMe()
 			.then((user) => {
-				if (!user?.userId) {
+				if (!user?.id) {
 					window.location.href = "/auth";
 				} else {
 					fetchBudgetList().then(setBudgets).catch(console.error);
@@ -50,10 +50,8 @@ export default function BudgetsPage() {
 					<div key={b.id} className={styles.budgetCard}>
 						<div className={styles.budgetInfo}>
 							<h3>
-								{b.year}/{b.month}
+								{b.email || b.ownerId}
 							</h3>
-							<p>Доход: {b.income / 100}</p>
-							<p>Валюта: {b.currency}</p>
 						</div>
 						<div className={styles.budgetActions}>
 							<button
@@ -63,7 +61,7 @@ export default function BudgetsPage() {
 								Открыть
 							</button>
 							<button
-								className={kitStyles.buttonSecondary}
+								className={kitStyles.button}
 								onClick={() =>
 									setSelectedBudgetId(
 										selectedBudgetId === b.id ? null : b.id

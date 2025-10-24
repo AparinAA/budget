@@ -55,9 +55,9 @@ export function Categories({ onAfterChange }) {
 	const targetRefs = useRef(new Map());
 
 	return (
-		<section className={kit.card}>
+		<section className={kit.card} style={{ background: "var(--bg-primary)" }}>
 			<h3 className={kit.cardTitle}>Категории</h3>
-			<div style={{ display: "grid", gap: 12 }}>
+			<div style={{ display: "grid", gap: "var(--spacing-md)" }}>
 				{allocated.map((c, idx) => (
 					<div key={c.id} className={styles.categoryItem}>
 						<div className={styles.topRow}>
