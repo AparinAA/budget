@@ -1,6 +1,7 @@
 import Script from "next/script";
 import styles from "./layout.module.css";
 import "@/shared/ui/variables.css";
+import { MobileNavigation } from "@/shared/ui/MobileNavigation";
 
 export const metadata = {
 	title: "Семейный бюджет",
@@ -76,7 +77,8 @@ export default function RootLayout({ children }) {
 					style={{
 						maxWidth: 1100,
 						margin: "0 auto",
-						padding: "var(--spacing-lg) var(--spacing-md)",
+						padding: "var(--spacing-lg) 1px",
+						paddingBottom: "80px", // Отступ снизу для мобильной навигации
 					}}
 				>
 					<header className={styles.header}>
@@ -86,6 +88,7 @@ export default function RootLayout({ children }) {
 					</header>
 					{children}
 				</div>
+				<MobileNavigation />
 			</body>
 		</html>
 	);

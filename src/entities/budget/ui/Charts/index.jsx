@@ -70,13 +70,16 @@ export function Charts({ pieData, barData, currencyCode }) {
 			<div className={styles.chartH}>
 				<h3 className={kit.cardTitle}>План vs факт</h3>
 				<ResponsiveContainer>
-					<BarChart data={barData}>
+					<BarChart data={barData} margin={{ left: 0, right: 10, bottom: 10, top: 10 }}>
 						<CartesianGrid
 							strokeDasharray="3 3"
 							stroke="var(--border-primary)"
 						/>
-						<XAxis dataKey="name" stroke="var(--text-secondary)" />
-						<YAxis stroke="var(--text-secondary)" />
+						<XAxis 
+							dataKey="name" 
+							hide={true}
+						/>
+						<YAxis stroke="var(--text-secondary)" tick={{ fontSize: 12 }} />
 						<Tooltip
 							formatter={(v) => currency(v, currencyCode)}
 							contentStyle={{
@@ -88,7 +91,15 @@ export function Charts({ pieData, barData, currencyCode }) {
 							itemStyle={{ color: "var(--text-primary)" }}
 						/>
 						<Legend 
-							wrapperStyle={{ color: "var(--text-primary)" }}
+							wrapperStyle={{ 
+								color: "var(--text-primary) !important",
+								fontSize: "14px"
+							}}
+							iconType="square"
+							iconSize={12}
+							verticalAlign="bottom"
+							height={40}
+							formatter={(value) => <span style={{ color: "var(--text-primary)" }}>{value}</span>}
 						/>
 						<Bar
 							dataKey="allocated"
