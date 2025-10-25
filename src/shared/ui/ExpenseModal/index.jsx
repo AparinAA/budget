@@ -6,28 +6,97 @@ import { postAction } from "@/shared/api/budget";
 import { useBudgetStore } from "@/shared/store/budgetStore";
 
 export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, category }) {
-	const { year, month, setSnapshot, ownerId, categories } = useBudgetStore();
+	const { year, month, setSnapshot, ownerId, categories, currency: baseCurrency } = useBudgetStore();
 	const [amount, setAmount] = useState("");
 	const [error, setError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isTelegram, setIsTelegram] = useState(false);
+	const [selectedCurrency, setSelectedCurrency] = useState("RSD");
+	const [exchangeRates, setExchangeRates] = useState(null);
+	const [loadingRates, setLoadingRates] = useState(false);
 	
 	// Локальные состояния для кнопок
 	const [isSaving, setIsSaving] = useState(false);
 	const [rolloverEnabled, setRolloverEnabled] = useState(false);
 	const [rolloverTargetId, setRolloverTargetId] = useState("");
 
-	// Используем useRef для хранения актуального значения amount
+	// Используем useRef для хранения актуального значения amount и selectedCurrency
 	const amountRef = useRef(amount);
+	const selectedCurrencyRef = useRef(selectedCurrency);
+	const exchangeRatesRef = useRef(exchangeRates);
 	
 	useEffect(() => {
 		amountRef.current = amount;
 	}, [amount]);
 	
+	useEffect(() => {
+		selectedCurrencyRef.current = selectedCurrency;
+	}, [selectedCurrency]);
+	
+	useEffect(() => {
+		exchangeRatesRef.current = exchangeRates;
+	}, [exchangeRates]);
+	
 	// Проверяем, запущено ли в Telegram Mini App
 	useEffect(() => {
 		setIsTelegram(!!window.Telegram?.WebApp?.initData);
 	}, []);
+
+	// Загружаем курсы валют при открытии модального окна
+	useEffect(() => {
+		if (!isOpen) return;
+
+		const fetchExchangeRates = async () => {
+			const CACHE_KEY = "exchange_rates_cache";
+			const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+
+			try {
+				// Проверяем кэш
+				const cached = localStorage.getItem(CACHE_KEY);
+				if (cached) {
+					const { data, timestamp } = JSON.parse(cached);
+					const now = Date.now();
+					
+					// Если кэш не протух, используем его
+					if (now - timestamp < CACHE_TTL) {
+						setExchangeRates(data);
+						return;
+					}
+				}
+
+				// Делаем запрос к API
+				setLoadingRates(true);
+				const response = await fetch(
+					"https://api.fastforex.io/fetch-multi?from=EUR&to=EUR,RSD,USD,RUB&api_key=demo"
+				);
+				
+				if (!response.ok) {
+					throw new Error("Failed to fetch exchange rates");
+				}
+
+				const result = await response.json();
+				
+				// Сохраняем в кэш
+				localStorage.setItem(
+					CACHE_KEY,
+					JSON.stringify({
+						data: result.results,
+						timestamp: Date.now(),
+					})
+				);
+
+				setExchangeRates(result.results);
+			} catch (err) {
+				console.error("Error fetching exchange rates:", err);
+				// Устанавливаем базовые курсы при ошибке
+				setExchangeRates({ EUR: 1, RSD: 117.175, USD: 1.16274, RUB: 100.5 });
+			} finally {
+				setLoadingRates(false);
+			}
+		};
+
+		fetchExchangeRates();
+	}, [isOpen]);
 
 	// Отдельный useEffect для управления состоянием MainButton в зависимости от amount (только в Telegram)
 	useEffect(() => {
@@ -51,6 +120,11 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 			setIsSaving(!!category.isSaving);
 			setRolloverEnabled(!!category.rolloverEnabled);
 			setRolloverTargetId(category.rolloverTargetId || "");
+		}
+		
+		// Сброс валюты при открытии
+		if (isOpen) {
+			setSelectedCurrency("RSD");
 		}
 	}, [isOpen, category]);
 
@@ -107,7 +181,16 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 				mainButton.showProgress();
 				mainButton.disable();
 
-				const amountCents = Math.floor(amountNum * 100);
+				// Конвертируем сумму в базовую валюту (EUR)
+				let convertedAmount = amountNum;
+				const currentCurrency = selectedCurrencyRef.current;
+				const currentRates = exchangeRatesRef.current;
+				
+				if (currentCurrency !== "EUR" && currentRates && currentRates[currentCurrency]) {
+					convertedAmount = amountNum / currentRates[currentCurrency];
+				}
+
+				const amountCents = Math.round(convertedAmount * 100);
 				postAction("addExpense", {
 					year,
 					month,
@@ -154,7 +237,7 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 			document.body.style.overflow = "";
 			document.body.style.paddingRight = "";
 		};
-	}, [isOpen, year, month, categoryId, ownerId, setSnapshot, onClose, isTelegram]);
+	}, [isOpen, year, month, categoryId, ownerId, setSnapshot, onClose, isTelegram, selectedCurrency, exchangeRates]);
 
 	// Обработчик для обычной кнопки (не Telegram)
 	const handleAddExpense = async () => {
@@ -168,7 +251,13 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 		setError("");
 
 		try {
-			const amountCents = Math.floor(amountNum * 100);
+			// Конвертируем сумму в базовую валюту (EUR)
+			let convertedAmount = amountNum;
+			if (selectedCurrency !== "EUR" && exchangeRates && exchangeRates[selectedCurrency]) {
+				convertedAmount = amountNum / exchangeRates[selectedCurrency];
+			}
+
+			const amountCents = Math.round(convertedAmount * 100);
 			const snap = await postAction("addExpense", {
 				year,
 				month,
@@ -353,20 +442,48 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 
 				<form onSubmit={handleSubmit} className={styles.form}>
 					<label className={kit.label}>Сумма расхода</label>
-					<input
-						type="number"
-						min="0"
-						step="0.01"
-						value={amount}
-						onChange={(e) => {
-							setAmount(e.target.value);
-							setError("");
-						}}
-						placeholder="Введите сумму"
-						className={kit.input}
-						disabled={isSubmitting}
-						autoFocus
-					/>
+					<div style={{ display: "flex", gap: "var(--spacing-sm)" }}>
+						<input
+							type="number"
+							min="0"
+							step="0.01"
+							value={amount}
+							onChange={(e) => {
+								setAmount(e.target.value);
+								setError("");
+							}}
+							placeholder="Введите сумму"
+							className={kit.input}
+							disabled={isSubmitting}
+							autoFocus
+							style={{ flex: 1 }}
+						/>
+						<select
+							value={selectedCurrency}
+							onChange={(e) => setSelectedCurrency(e.target.value)}
+							className={kit.input}
+							disabled={isSubmitting || loadingRates}
+							style={{ width: "100px" }}
+						>
+							<option value="RSD">RSD</option>
+							<option value="EUR">EUR</option>
+							<option value="USD">USD</option>
+							<option value="RUB">RUB</option>
+						</select>
+					</div>
+					
+					{selectedCurrency !== "EUR" && exchangeRates && (
+						<div style={{ 
+							fontSize: 12, 
+							color: "var(--text-secondary)", 
+							marginTop: "var(--spacing-xs)" 
+						}}>
+							1 {selectedCurrency} = {(1 / (exchangeRates[selectedCurrency] || 1)).toFixed(4)} EUR
+							{amount && Number(amount) > 0 && (
+								<> • {amount} {selectedCurrency} ≈ {(Number(amount) / (exchangeRates[selectedCurrency] || 1)).toFixed(2)} EUR</>
+							)}
+						</div>
+					)}
 
 					{error && <div className={styles.error}>{error}</div>}
 					
