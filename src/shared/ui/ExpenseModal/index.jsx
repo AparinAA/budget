@@ -5,11 +5,25 @@ import styles from "./styles.module.css";
 import { postAction } from "@/shared/api/budget";
 import { useBudgetStore } from "@/shared/store/budgetStore";
 
-export function ExpenseModal({ isOpen, onClose, categoryId, categoryName }) {
-	const { year, month, setSnapshot, ownerId } = useBudgetStore();
+export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, category }) {
+	const { year, month, setSnapshot, ownerId, categories } = useBudgetStore();
 	const [amount, setAmount] = useState("");
 	const [error, setError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	
+	// Локальные состояния для кнопок
+	const [isSaving, setIsSaving] = useState(false);
+	const [rolloverEnabled, setRolloverEnabled] = useState(false);
+	const [rolloverTargetId, setRolloverTargetId] = useState("");
+
+	useEffect(() => {
+		if (isOpen && category) {
+			// Инициализируем состояния из категории
+			setIsSaving(!!category.isSaving);
+			setRolloverEnabled(!!category.rolloverEnabled);
+			setRolloverTargetId(category.rolloverTargetId || "");
+		}
+	}, [isOpen, category]);
 
 	useEffect(() => {
 		if (isOpen) {
@@ -64,6 +78,68 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName }) {
 		}
 	};
 
+	const handleToggleSaving = async () => {
+		const newValue = !isSaving;
+		setIsSaving(newValue);
+		
+		try {
+			const snap = await postAction("setCategorySaving", {
+				year,
+				month,
+				categoryId,
+				isSaving: newValue,
+				ownerId: ownerId || null,
+			});
+			setSnapshot(snap);
+			await postAction("recalculateSavings", { year, month, ownerId: ownerId || null });
+			window.dispatchEvent(new Event("refresh-savings"));
+		} catch (err) {
+			setIsSaving(!newValue); // Откатываем при ошибке
+		}
+	};
+
+	const handleToggleRollover = async () => {
+		const newValue = !rolloverEnabled;
+		setRolloverEnabled(newValue);
+		
+		try {
+			const snap = await postAction("setCategoryRollover", {
+				year,
+				month,
+				categoryId,
+				rolloverEnabled: newValue,
+				rolloverTargetId: rolloverTargetId || "",
+				ownerId: ownerId || null,
+			});
+			setSnapshot(snap);
+			await postAction("recalculateSavings", { year, month, ownerId: ownerId || null });
+			window.dispatchEvent(new Event("refresh-savings"));
+		} catch (err) {
+			setRolloverEnabled(!newValue); // Откатываем при ошибке
+		}
+	};
+
+	const handleChangeRolloverTarget = async (e) => {
+		const val = e.target.value || null;
+		setRolloverTargetId(val);
+		
+		try {
+			const snap = await postAction("setCategoryRollover", {
+				year,
+				month,
+				categoryId,
+				rolloverEnabled: true,
+				rolloverTargetId: val,
+				ownerId: ownerId || null,
+			});
+			setSnapshot(snap);
+			await postAction("recalculateSavings", { year, month, ownerId: ownerId || null });
+			window.dispatchEvent(new Event("refresh-savings"));
+		} catch (err) {
+			// При ошибке можно откатить
+		}
+	};
+
 	return (
 		<div className={styles.backdrop} onClick={handleBackdropClick}>
 			<div className={styles.modal}>
@@ -77,6 +153,56 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName }) {
 						← Назад
 					</button>
 					<h3 className={styles.title}>{categoryName}</h3>
+				</div>
+
+				<div className={styles.controls}>
+					<button
+						type="button"
+						aria-pressed={isSaving}
+						className={kit.button}
+						style={{
+							background: isSaving ? "#256c43" : undefined,
+							borderColor: isSaving ? "#2b8857" : undefined,
+						}}
+						onClick={handleToggleSaving}
+						disabled={isSubmitting}
+					>
+						Копить
+					</button>
+
+					<button
+						type="button"
+						aria-pressed={rolloverEnabled}
+						className={kit.button}
+						style={{
+							background: rolloverEnabled ? "#374151" : undefined,
+							borderColor: rolloverEnabled ? "#4b5563" : undefined,
+							opacity: isSaving ? 0.6 : 1,
+							cursor: isSaving ? "not-allowed" : "pointer",
+						}}
+						onClick={handleToggleRollover}
+						disabled={isSubmitting || isSaving}
+					>
+						Переносить остаток →
+					</button>
+
+					{rolloverEnabled && (
+						<select
+							value={rolloverTargetId}
+							onChange={handleChangeRolloverTarget}
+							className={kit.input}
+							disabled={isSubmitting}
+						>
+							<option value="">Выберите копящую категорию</option>
+							{categories
+								.filter((x) => x.isSaving && x.id !== categoryId)
+								.map((opt) => (
+									<option key={opt.id} value={opt.id}>
+										{opt.name}
+									</option>
+								))}
+						</select>
+					)}
 				</div>
 
 				<form onSubmit={handleSubmit} className={styles.form}>

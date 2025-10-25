@@ -38,7 +38,7 @@ export function Categories({ onAfterChange }) {
 
 	// Локальные правки для мгновенного отображения без ожидания сети
 	const [localEdits, setLocalEdits] = useState({}); // { [catId]: { percent?: string, isSaving?: boolean, rolloverEnabled?: boolean, rolloverTargetId?: string|null } }
-	const [expenseModal, setExpenseModal] = useState({ isOpen: false, categoryId: null, categoryName: "" });
+	const [expenseModal, setExpenseModal] = useState({ isOpen: false, categoryId: null, categoryName: "", category: null });
 
 	useEffect(() => {
 		setLocalEdits((prev) => {
@@ -53,9 +53,6 @@ export function Categories({ onAfterChange }) {
 
 	// Рефы для дебаунса и отмены по полям
 	const percentRefs = useRef(new Map()); // id -> { t, controller }
-	const savingRefs = useRef(new Map());
-	const rolloverRefs = useRef(new Map());
-	const targetRefs = useRef(new Map());
 
 	return (
 		<section className={kit.card} style={{ background: "var(--bg-primary)" }}>
@@ -73,117 +70,10 @@ export function Categories({ onAfterChange }) {
 								/>
 								<div 
 									className={styles.categoryName}
-									onClick={() => setExpenseModal({ isOpen: true, categoryId: c.id, categoryName: c.name })}
+									onClick={() => setExpenseModal({ isOpen: true, categoryId: c.id, categoryName: c.name, category: c })}
 								>
 									{c.name}
 								</div>
-								{(() => {
-									const active = localEdits[c.id]?.isSaving ?? !!c.isSaving;
-									return (
-										<button
-											type="button"
-											aria-pressed={active}
-											className={kit.button}
-											style={{ marginLeft: 10, background: active ? "#256c43" : undefined, borderColor: active ? "#2b8857" : undefined }}
-											onClick={() => {
-												const isSaving = !active;
-												setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), isSaving } }));
-												const cell = savingRefs.current.get(c.id) || { t: null, controller: null };
-												if (cell.t) clearTimeout(cell.t);
-												if (cell.controller) cell.controller.abort();
-												const controller = new AbortController();
-												cell.controller = controller;
-												cell.t = setTimeout(() => {
-													postAction("setCategorySaving", { year, month, categoryId: c.id, isSaving, ownerId: ownerId || null }, { signal: controller.signal })
-														.then((snap) => {
-															setSnapshot(snap);
-															onAfterChange?.();
-															return postAction("recalculateSavings", { year, month, ownerId: ownerId || null }).catch(() => {});
-														})
-														.then(() => {
-															window.dispatchEvent(new Event("refresh-savings"));
-														})
-														.catch(() => {})
-														.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), isSaving: undefined } })); });
-												}, 1000);
-												savingRefs.current.set(c.id, cell);
-											}}
-										>
-											Копить
-										</button>
-									);
-								})()}
-								{(() => {
-									const active = localEdits[c.id]?.rolloverEnabled ?? !!c.rolloverEnabled;
-									return (
-										<button
-											type="button"
-											aria-pressed={active}
-											className={kit.button}
-											style={{ marginLeft: 10, background: active ? "#374151" : undefined, borderColor: active ? "#4b5563" : undefined, opacity: c.isSaving ? 0.6 : 1, cursor: c.isSaving ? "not-allowed" : "pointer" }}
-											disabled={c.isSaving}
-											onClick={() => {
-												const rolloverEnabled = !active;
-												setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverEnabled } }));
-												const controller = new AbortController();
-												const rolloverTargetId = (localEdits[c.id]?.rolloverTargetId ?? c.rolloverTargetId) || "";
-												postAction("setCategoryRollover", { year, month, categoryId: c.id, rolloverEnabled, rolloverTargetId, ownerId: ownerId || null }, { signal: controller.signal })
-													.then((snap) => {
-														setSnapshot(snap);
-														return postAction("recalculateSavings", { year, month, ownerId: ownerId || null }).catch(() => {});
-													})
-													.then(() => {
-														window.dispatchEvent(new Event("refresh-savings"));
-														onAfterChange?.();
-													})
-													.catch(() => {})
-													.finally(() => { setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverEnabled: undefined } })); });
-											}}
-										>
-											Переносить остаток →
-										</button>
-									);
-								})()}
-								{c.rolloverEnabled && (
-									<select
-										value={(localEdits[c.id]?.rolloverTargetId ?? c.rolloverTargetId) ?? ""}
-										onChange={(e) => {
-											const val = e.target.value || null;
-											setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverTargetId: val } }));
-											const controller = new AbortController();
-											postAction("setCategoryRollover", { year, month, categoryId: c.id, rolloverEnabled: true, rolloverTargetId: val, ownerId: ownerId || null }, { signal: controller.signal })
-												.then((snap) => {
-													setSnapshot(snap);
-													return postAction("recalculateSavings", { year, month, ownerId: ownerId || null }).catch(() => {});
-												})
-												.then(() => {
-													window.dispatchEvent(new Event("refresh-savings"));
-													onAfterChange?.();
-												})
-												.catch(() => {})
-												.finally(() => { setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), rolloverTargetId: undefined } })); });
-										}}
-										className={kit.input}
-										style={{ width: 200 }}
-									>
-										<option value="">
-											Выберите копящую категорию
-										</option>
-										{categories
-											.filter(
-												(x) =>
-													x.isSaving && x.id !== c.id
-											)
-											.map((opt) => (
-												<option
-													key={opt.id}
-													value={opt.id}
-												>
-													{opt.name}
-												</option>
-											))}
-									</select>
-								)}
 							</div>
 							<div className={kit.label}>
 								Выделено: {currency(c.allocated, currencyCode)} · {c.percentOfIncome}% от дохода
@@ -281,11 +171,12 @@ export function Categories({ onAfterChange }) {
 			<ExpenseModal
 				isOpen={expenseModal.isOpen}
 				onClose={() => {
-					setExpenseModal({ isOpen: false, categoryId: null, categoryName: "" });
+					setExpenseModal({ isOpen: false, categoryId: null, categoryName: "", category: null });
 					onAfterChange?.();
 				}}
 				categoryId={expenseModal.categoryId}
 				categoryName={expenseModal.categoryName}
+				category={expenseModal.category}
 			/>
 		</section>
 	);
