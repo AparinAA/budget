@@ -7,6 +7,7 @@ import { currency } from "@/shared/lib/format";
 import { useBudgetStore } from "@/shared/store/budgetStore";
 import { postAction } from "@/shared/api/budget";
 import { ExpenseModal } from "@/shared/ui/ExpenseModal";
+import { MenuIcon, TrashIcon } from "@/shared/ui/icons";
 
 export function Categories({ onAfterChange }) {
 	const {
@@ -77,11 +78,7 @@ export function Categories({ onAfterChange }) {
 									style={{ padding: "6px 10px", minHeight: "32px" }}
 									title="Управление категорией"
 								>
-									<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-										<line x1="2" y1="3" x2="14" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-										<line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-										<line x1="2" y1="13" x2="14" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-									</svg>
+									<MenuIcon size={14} />
 								</button>
 								<button
 									onClick={() =>
@@ -101,9 +98,7 @@ export function Categories({ onAfterChange }) {
 									style={{ padding: "6px 10px", minHeight: "32px" }}
 									title="Удалить категорию"
 								>
-									<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-										<path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-									</svg>
+									<TrashIcon size={14} />
 								</button>
 							</div>
 							<div className={kit.label}>
@@ -162,7 +157,7 @@ export function Categories({ onAfterChange }) {
 									style={{ width: 120 }}
 								/>
 								<span
-									className={`${kit.muted} ${kit.mlAuto}`}
+									className={kit.muted}
 									style={{ fontSize: 12 }}
 								>
 									Остаток:{" "}

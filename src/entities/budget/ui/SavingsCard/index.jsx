@@ -4,6 +4,7 @@ import kit from "@/shared/ui/kit.module.css";
 import { fetchSavings, postAction } from "@/shared/api/budget";
 import { currency } from "@/shared/lib/format";
 import { useBudgetStore } from "@/shared/store/budgetStore";
+import { RefreshIcon } from "@/shared/ui/icons";
 
 export function SavingsCard({ currencyCode, onAfterRecalculate }) {
 	const { year, month, ownerId } = useBudgetStore();
@@ -31,8 +32,8 @@ export function SavingsCard({ currencyCode, onAfterRecalculate }) {
 
 	return (
 		<section className={kit.card}>
-			<div className={kit.rowLg} style={{ marginBottom: 8 }}>
-				<h3 className={kit.cardTitle} style={{ marginBottom: 0 }}>
+			<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+				<h3 className={kit.cardTitle} style={{ marginBottom: 0, marginTop: 0 }}>
 					Накопления
 				</h3>
 				<button
@@ -45,8 +46,10 @@ export function SavingsCard({ currencyCode, onAfterRecalculate }) {
 							})
 							.catch(() => {})
 					}
+					style={{ padding: "6px 10px", minHeight: "32px" }}
+					title="Пересчитать за период"
 				>
-					Пересчитать за период
+					<RefreshIcon size={14} />
 				</button>
 			</div>
 			<div className={kit.muted} style={{ marginBottom: 8 }}>

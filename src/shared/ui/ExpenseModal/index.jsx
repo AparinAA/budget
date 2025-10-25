@@ -23,6 +23,22 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 		amountRef.current = amount;
 	}, [amount]);
 
+	// Отдельный useEffect для управления состоянием MainButton в зависимости от amount
+	useEffect(() => {
+		if (!isOpen) return;
+		
+		if (window.Telegram?.WebApp?.MainButton) {
+			const mainButton = window.Telegram.WebApp.MainButton;
+			const amountNum = Number(amount);
+			
+			if (!amount || !amountNum || amountNum <= 0) {
+				mainButton.disable();
+			} else {
+				mainButton.enable();
+			}
+		}
+	}, [amount, isOpen]);
+
 	useEffect(() => {
 		if (isOpen && category) {
 			// Инициализируем состояния из категории
@@ -85,6 +101,8 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 						if (window.Telegram?.WebApp?.HapticFeedback) {
 							window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
 						}
+						mainButton.hideProgress();
+						mainButton.enable();
 						onClose();
 					})
 					.catch(() => {

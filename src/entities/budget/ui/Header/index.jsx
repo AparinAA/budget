@@ -5,6 +5,7 @@ import styles from "./styles.module.css";
 import { currency as fmt } from "@/shared/lib/format";
 import { authAction, getMe } from "@/shared/api/auth";
 import { shareBudgetWith, listAccessibleBudgets } from "@/shared/api/budget";
+import { ShareIcon, SendIcon, CloseIcon } from "@/shared/ui/icons";
 import Link from "next/link";
 
 const MONTHS = [
@@ -123,12 +124,12 @@ export function BudgetHeader({ year, month, currencyCode, stat, ownerId }) {
                                     }
                                 }}
                             >
-                                Отправить
+                                <SendIcon />
                             </button>
                         </>
                     )}
                     <button className={kit.button} onClick={() => setShareOpen((v) => !v)}>
-                        Поделиться
+                        {shareOpen ? <CloseIcon /> : <ShareIcon />}
                     </button>
                 </div>
                 )}

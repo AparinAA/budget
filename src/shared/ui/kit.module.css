@@ -13,6 +13,7 @@
 }
 
 .cardTitle {
+	margin-top: 0;
 	margin-bottom: var(--spacing-md);
 	font-weight: 600;
 	font-size: 17px;
