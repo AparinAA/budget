@@ -16,6 +16,13 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 	const [rolloverEnabled, setRolloverEnabled] = useState(false);
 	const [rolloverTargetId, setRolloverTargetId] = useState("");
 
+	// Используем useRef для хранения актуального значения amount
+	const amountRef = useRef(amount);
+	
+	useEffect(() => {
+		amountRef.current = amount;
+	}, [amount]);
+
 	useEffect(() => {
 		if (isOpen && category) {
 			// Инициализируем состояния из категории
@@ -51,7 +58,11 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 			const handleMainButtonClick = () => {
 				const amountNum = Number(amountRef.current);
 				if (!amountNum || amountNum <= 0) {
-					setError("Неверные параметры");
+					setError("Неверная сумма");
+					// Haptic feedback для ошибки
+					if (window.Telegram?.WebApp?.HapticFeedback) {
+						window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+					}
 					return;
 				}
 
@@ -70,10 +81,18 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 					.then((snap) => {
 						setSnapshot(snap);
 						setAmount("");
+						// Haptic feedback для успеха
+						if (window.Telegram?.WebApp?.HapticFeedback) {
+							window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+						}
 						onClose();
 					})
 					.catch(() => {
 						setError("Неверные параметры");
+						// Haptic feedback для ошибки
+						if (window.Telegram?.WebApp?.HapticFeedback) {
+							window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+						}
 						mainButton.hideProgress();
 						mainButton.enable();
 					})
