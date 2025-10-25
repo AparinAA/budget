@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import kit from "@/shared/ui/kit.module.css";
 import styles from "./styles.module.css";
 import { postAction } from "@/shared/api/budget";
@@ -25,83 +25,78 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 		}
 	}, [isOpen, category]);
 
+	// Отдельный useEffect для MainButton, чтобы не пересоздавать при каждом изменении amount
 	useEffect(() => {
-		if (isOpen) {
-			// Получаем ширину scrollbar
-			const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-			
-			// Блокируем скролл при открытии модалки
-			document.body.style.overflow = "hidden";
-			
-			// Компенсируем ширину scrollbar, чтобы избежать скачков
-			if (scrollbarWidth > 0) {
-				document.body.style.paddingRight = `${scrollbarWidth}px`;
-			}
+		if (!isOpen) return;
 
-			// Настраиваем Telegram MainButton
-			if (window.Telegram?.WebApp?.MainButton) {
-				const mainButton = window.Telegram.WebApp.MainButton;
-				mainButton.setText("Добавить расход");
-				mainButton.show();
-				mainButton.enable();
-				
-				// Обработчик клика
-				const handleMainButtonClick = () => {
-					const amountNum = Number(amount);
-					if (!amountNum || amountNum <= 0) {
-						setError("Неверные параметры");
-						return;
-					}
-
-					setIsSubmitting(true);
-					mainButton.showProgress();
-					mainButton.disable();
-
-					const amountCents = Math.floor(amountNum * 100);
-					postAction("addExpense", {
-						year,
-						month,
-						categoryId,
-						amount: amountCents,
-						ownerId: ownerId || null,
-					})
-						.then((snap) => {
-							setSnapshot(snap);
-							setAmount("");
-							onClose();
-						})
-						.catch(() => {
-							setError("Неверные параметры");
-							mainButton.hideProgress();
-							mainButton.enable();
-						})
-						.finally(() => {
-							setIsSubmitting(false);
-						});
-				};
-
-				mainButton.onClick(handleMainButtonClick);
-
-				return () => {
-					mainButton.offClick(handleMainButtonClick);
-					mainButton.hide();
-				};
-			}
-		} else {
-			// Восстанавливаем скролл при закрытии
-			document.body.style.overflow = "";
-			document.body.style.paddingRight = "";
+		// Получаем ширину scrollbar
+		const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+		
+		// Блокируем скролл при открытии модалки
+		document.body.style.overflow = "hidden";
+		
+		// Компенсируем ширину scrollbar, чтобы избежать скачков
+		if (scrollbarWidth > 0) {
+			document.body.style.paddingRight = `${scrollbarWidth}px`;
 		}
 
-		// Очищаем при размонтировании компонента
+		// Настраиваем Telegram MainButton
+		if (window.Telegram?.WebApp?.MainButton) {
+			const mainButton = window.Telegram.WebApp.MainButton;
+			mainButton.setText("Добавить расход");
+			mainButton.show();
+			mainButton.enable();
+			
+			// Обработчик клика
+			const handleMainButtonClick = () => {
+				const amountNum = Number(amountRef.current);
+				if (!amountNum || amountNum <= 0) {
+					setError("Неверные параметры");
+					return;
+				}
+
+				setIsSubmitting(true);
+				mainButton.showProgress();
+				mainButton.disable();
+
+				const amountCents = Math.floor(amountNum * 100);
+				postAction("addExpense", {
+					year,
+					month,
+					categoryId,
+					amount: amountCents,
+					ownerId: ownerId || null,
+				})
+					.then((snap) => {
+						setSnapshot(snap);
+						setAmount("");
+						onClose();
+					})
+					.catch(() => {
+						setError("Неверные параметры");
+						mainButton.hideProgress();
+						mainButton.enable();
+					})
+					.finally(() => {
+						setIsSubmitting(false);
+					});
+			};
+
+			mainButton.onClick(handleMainButtonClick);
+
+			return () => {
+				mainButton.offClick(handleMainButtonClick);
+				mainButton.hide();
+				document.body.style.overflow = "";
+				document.body.style.paddingRight = "";
+			};
+		}
+
 		return () => {
 			document.body.style.overflow = "";
 			document.body.style.paddingRight = "";
-			if (window.Telegram?.WebApp?.MainButton) {
-				window.Telegram.WebApp.MainButton.hide();
-			}
 		};
-	}, [isOpen, amount, year, month, categoryId, ownerId, setSnapshot, onClose]);	if (!isOpen) return null;
+	}, [isOpen, year, month, categoryId, ownerId, setSnapshot, onClose]);	if (!isOpen) return null;
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
