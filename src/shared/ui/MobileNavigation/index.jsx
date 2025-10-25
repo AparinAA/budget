@@ -38,25 +38,11 @@ export function MobileNavigation() {
 		router.push("/auth");
 	};
 
-	if (loading) {
+	// Если не авторизован или загрузка - не показываем навигацию
+	if (loading || !me) {
 		return null;
 	}
 
-	// Если пользователь не авторизован - показываем большую кнопку Login
-	if (!me) {
-		return (
-			<nav className={styles.mobileNav}>
-				<button
-					className={styles.loginButton}
-					onClick={() => router.push("/auth")}
-				>
-					Войти
-				</button>
-			</nav>
-		);
-	}
-
-	// Если авторизован - показываем меню из 3 кнопок
 	return (
 		<nav className={styles.mobileNav}>
 			<button

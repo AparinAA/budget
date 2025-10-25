@@ -1,14 +1,15 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import Script from "next/script";
 import styles from "./layout.module.css";
 import "@/shared/ui/variables.css";
 import { MobileNavigation } from "@/shared/ui/MobileNavigation";
 
-export const metadata = {
-	title: "Семейный бюджет",
-	description: "Планирование и контроль расходов",
-};
-
 export default function RootLayout({ children }) {
+	const pathname = usePathname();
+	const isAuthPage = pathname === "/auth";
+	
 	return (
 		<html lang="ru">
 			<head>
@@ -96,7 +97,7 @@ export default function RootLayout({ children }) {
 					</header>
 					{children}
 				</div>
-				<MobileNavigation />
+				{!isAuthPage && <MobileNavigation />}
 			</body>
 		</html>
 	);

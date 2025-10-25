@@ -10,6 +10,7 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 	const [amount, setAmount] = useState("");
 	const [error, setError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isTelegram, setIsTelegram] = useState(false);
 	
 	// Локальные состояния для кнопок
 	const [isSaving, setIsSaving] = useState(false);
@@ -22,10 +23,15 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 	useEffect(() => {
 		amountRef.current = amount;
 	}, [amount]);
-
-	// Отдельный useEffect для управления состоянием MainButton в зависимости от amount
+	
+	// Проверяем, запущено ли в Telegram Mini App
 	useEffect(() => {
-		if (!isOpen) return;
+		setIsTelegram(!!window.Telegram?.WebApp?.initData);
+	}, []);
+
+	// Отдельный useEffect для управления состоянием MainButton в зависимости от amount (только в Telegram)
+	useEffect(() => {
+		if (!isOpen || !isTelegram) return;
 		
 		if (window.Telegram?.WebApp?.MainButton) {
 			const mainButton = window.Telegram.WebApp.MainButton;
@@ -37,7 +43,7 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 				mainButton.enable();
 			}
 		}
-	}, [amount, isOpen]);
+	}, [amount, isOpen, isTelegram]);
 
 	useEffect(() => {
 		if (isOpen && category) {
@@ -48,9 +54,24 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 		}
 	}, [isOpen, category]);
 
-	// Отдельный useEffect для MainButton, чтобы не пересоздавать при каждом изменении amount
+	// Отдельный useEffect для MainButton, чтобы не пересоздавать при каждом изменении amount (только в Telegram)
 	useEffect(() => {
-		if (!isOpen) return;
+		if (!isOpen || !isTelegram) {
+			// Если не Telegram, только управляем скроллом
+			if (isOpen) {
+				const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+				document.body.style.overflow = "hidden";
+				if (scrollbarWidth > 0) {
+					document.body.style.paddingRight = `${scrollbarWidth}px`;
+				}
+				
+				return () => {
+					document.body.style.overflow = "";
+					document.body.style.paddingRight = "";
+				};
+			}
+			return;
+		}
 
 		// Получаем ширину scrollbar
 		const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -133,7 +154,39 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 			document.body.style.overflow = "";
 			document.body.style.paddingRight = "";
 		};
-	}, [isOpen, year, month, categoryId, ownerId, setSnapshot, onClose]);	if (!isOpen) return null;
+	}, [isOpen, year, month, categoryId, ownerId, setSnapshot, onClose, isTelegram]);
+
+	// Обработчик для обычной кнопки (не Telegram)
+	const handleAddExpense = async () => {
+		const amountNum = Number(amount);
+		if (!amountNum || amountNum <= 0) {
+			setError("Неверная сумма");
+			return;
+		}
+
+		setIsSubmitting(true);
+		setError("");
+
+		try {
+			const amountCents = Math.floor(amountNum * 100);
+			const snap = await postAction("addExpense", {
+				year,
+				month,
+				categoryId,
+				amount: amountCents,
+				ownerId: ownerId || null,
+			});
+			setSnapshot(snap);
+			setAmount("");
+			onClose();
+		} catch (err) {
+			setError("Неверные параметры");
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	if (!isOpen) return null;
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -316,6 +369,18 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 					/>
 
 					{error && <div className={styles.error}>{error}</div>}
+					
+					{!isTelegram && (
+						<button
+							type="button"
+							onClick={handleAddExpense}
+							disabled={isSubmitting || !amount || Number(amount) <= 0}
+							className={kit.button}
+							style={{ width: "100%", marginTop: "var(--spacing-md)" }}
+						>
+							{isSubmitting ? "Добавление..." : "Добавить расход"}
+						</button>
+					)}
 				</form>
 			</div>
 		</div>
