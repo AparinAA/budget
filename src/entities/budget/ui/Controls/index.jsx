@@ -87,7 +87,7 @@ export function Controls({ onAfterChange, totalRemaining }) {
 				/>
 				<div className={`${kit.mlAuto} ${kit.label}`}>
 					Остаток:{" "}
-					<b style={{ color: "#e6edf3" }}>{totalRemaining}</b>
+					<b style={{ color: "var(--text-primary)" }}>{totalRemaining}</b>
 				</div>
 			</div>
 

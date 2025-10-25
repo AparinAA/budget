@@ -22,21 +22,16 @@
 
 .nameRow {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 8px;
-	flex-wrap: wrap;
+	width: 100%;
 }
 
 .categoryName {
 	font-weight: 500;
-	cursor: pointer;
-	text-decoration: underline;
-	text-decoration-color: rgba(255, 255, 255, 0.2);
-	transition: text-decoration-color 0.2s;
-}
-
-.categoryName:hover {
-	text-decoration-color: rgba(255, 255, 255, 0.6);
+	flex: 1;
+	word-break: break-word;
+	min-width: 0;
 }
 
 .dot {
