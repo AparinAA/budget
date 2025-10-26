@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useCallback } from "react";
 
 export function useTelegramMainButton({
 	isOpen,
@@ -9,6 +9,20 @@ export function useTelegramMainButton({
 	onSubmit,
 	onError,
 }) {
+	// Стабилизируем функции через useCallback
+	const handleError = useCallback((message) => {
+		onError(message);
+		if (window.Telegram?.WebApp?.HapticFeedback) {
+			window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+		}
+	}, [onError]);
+
+	const handleSuccess = useCallback(() => {
+		if (window.Telegram?.WebApp?.HapticFeedback) {
+			window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+		}
+	}, []);
+
 	useEffect(() => {
 		if (!isOpen || !isTelegram) {
 			// Управляем скроллом для не-Telegram
@@ -43,17 +57,20 @@ export function useTelegramMainButton({
 			const mainButton = window.Telegram.WebApp.MainButton;
 			mainButton.setText("Добавить расход");
 			mainButton.show();
-			mainButton.enable();
+			
+			// Проверяем начальное состояние amount
+			const initialAmount = Number(amountRef.current);
+			if (!amountRef.current || !initialAmount || initialAmount <= 0) {
+				mainButton.disable();
+			} else {
+				mainButton.enable();
+			}
 			
 			// Обработчик клика
 			const handleMainButtonClick = () => {
 				const amountNum = Number(amountRef.current);
 				if (!amountNum || amountNum <= 0) {
-					onError("Неверная сумма");
-					// Haptic feedback для ошибки
-					if (window.Telegram?.WebApp?.HapticFeedback) {
-						window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-					}
+					handleError("Неверная сумма");
 					return;
 				}
 
@@ -73,19 +90,12 @@ export function useTelegramMainButton({
 
 				onSubmit(amountCents)
 					.then(() => {
-						// Haptic feedback для успеха
-						if (window.Telegram?.WebApp?.HapticFeedback) {
-							window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-						}
+						handleSuccess();
 						mainButton.hideProgress();
 						mainButton.enable();
 					})
 					.catch(() => {
-						onError("Неверные параметры");
-						// Haptic feedback для ошибки
-						if (window.Telegram?.WebApp?.HapticFeedback) {
-							window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-						}
+						handleError("Неверные параметры");
 						mainButton.hideProgress();
 						mainButton.enable();
 					});
@@ -105,7 +115,7 @@ export function useTelegramMainButton({
 			document.body.style.overflow = "";
 			document.body.style.paddingRight = "";
 		};
-	}, [isOpen, isTelegram, amountRef, selectedCurrencyRef, exchangeRatesRef, onSubmit, onError]);
+	}, [isOpen, isTelegram, onSubmit, handleError, handleSuccess]);
 }
 
 export function useTelegramMainButtonState(isOpen, isTelegram, amount) {

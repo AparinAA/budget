@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import kit from "@/shared/ui/kit.module.css";
 import styles from "./styles.module.css";
 import { postAction } from "@/shared/api/budget";
@@ -55,8 +55,8 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 		}
 	}, [isOpen]);
 
-	// Функция для отправки расхода
-	const submitExpense = async (amountCents) => {
+	// Функция для отправки расхода (стабильная с useCallback)
+	const submitExpense = useCallback(async (amountCents) => {
 		setIsSubmitting(true);
 		try {
 			const snap = await postAction("addExpense", {
@@ -72,7 +72,12 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 		} finally {
 			setIsSubmitting(false);
 		}
-	};
+	}, [year, month, categoryId, ownerId, setSnapshot, onClose]);
+
+	// Стабильная функция для установки ошибки
+	const handleSetError = useCallback((message) => {
+		setError(message);
+	}, []);
 
 	// Используем Telegram MainButton
 	useTelegramMainButton({
@@ -82,7 +87,7 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 		selectedCurrencyRef,
 		exchangeRatesRef,
 		onSubmit: submitExpense,
-		onError: setError,
+		onError: handleSetError,
 	});
 
 	useTelegramMainButtonState(isOpen, isTelegram, amount);
