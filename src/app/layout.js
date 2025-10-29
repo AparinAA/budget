@@ -35,7 +35,7 @@ export default function RootLayout({ children }) {
 
 				    // tg?.ready();
 				    // tg?.expand();
-
+					tg?.disableVerticalSwipes();
 				    // // Включаем полноэкранный режим
 				    // if (tg.requestFullscreen) {
 				    //   tg.requestFullscreen();
