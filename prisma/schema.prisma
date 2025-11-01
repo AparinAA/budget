@@ -31,7 +31,7 @@ model Budget {
   year      Int
   income    Int          // store in minor units (cents)
   currencyCode String    @default("RUB") // ISO 4217 code
-  user      User         @relation(fields: [userId], references: [id])
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   categories Category[]
   expenses   Expense[]
@@ -46,7 +46,7 @@ model Category {
   name      String
   amount    Int      // nominal in cents
   isSaving  Boolean  @default(false)
-  budget    Budget   @relation(fields: [budgetId], references: [id])
+  budget    Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
   budgetId  String
   expenses  Expense[]
   savingsTransfers SavingsTransfer[]
@@ -65,16 +65,16 @@ model Expense {
   id         String   @id @default(cuid())
   amount     Int      // in cents
   note       String?
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId String
-  budget     Budget   @relation(fields: [budgetId], references: [id])
+  budget     Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
   budgetId   String
   createdAt  DateTime @default(now())
 }
 
 model MonthlyBudgetStats {
   id         String   @id @default(cuid())
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
   month      Int
   year       Int
@@ -89,9 +89,9 @@ model MonthlyBudgetStats {
 
 model SavingsTransfer {
   id          String   @id @default(cuid())
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
-  category    Category @relation(fields: [categoryId], references: [id])
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId  String
   month       Int
   year        Int
@@ -105,7 +105,7 @@ model SavingsTransfer {
 
 model Session {
   token    String   @id
-  user     User     @relation(fields: [userId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId   String
   expires  DateTime
   createdAt DateTime @default(now())
@@ -114,9 +114,9 @@ model Session {
 // Доступ к бюджетам (логика совместного редактирования бюджетов по владельцу)
 model BudgetShare {
   id         String   @id @default(cuid())
-  owner      User     @relation("ShareOwner", fields: [ownerId], references: [id])
+  owner      User     @relation("ShareOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId    String
-  member     User     @relation("ShareMember", fields: [memberId], references: [id])
+  member     User     @relation("ShareMember", fields: [memberId], references: [id], onDelete: Cascade)
   memberId   String
   role       String   @default("editor") // editor, viewer (на будущее)
   createdAt  DateTime @default(now())

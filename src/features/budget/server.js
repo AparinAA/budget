@@ -33,6 +33,12 @@ export async function ensureAccess(ownerId) {
 
 export async function getOrCreateBudget(year, month, ownerId) {
 	const userId = await ensureAccess(ownerId);
+	// Ensure user exists in database
+	await prisma.user.upsert({
+		where: { id: userId },
+		update: {},
+		create: { id: userId },
+	});
 	const defaults = [
 		{ name: "Еда", amount: 0 },
 		{ name: "Аренда", amount: 0 },
@@ -221,7 +227,13 @@ export async function removeCategory({ year, month, categoryId, ownerId }) {
 	await prisma.category.delete({ where: { id: categoryId } });
 }
 
-export async function setCategoryAmount({ year, month, categoryId, amount, ownerId }) {
+export async function setCategoryAmount({
+	year,
+	month,
+	categoryId,
+	amount,
+	ownerId,
+}) {
 	await getOrCreateBudget(year, month, ownerId);
 	const current = await prisma.category.findUnique({
 		where: { id: categoryId },
@@ -235,7 +247,9 @@ export async function setCategoryAmount({ year, month, categoryId, amount, owner
 		select: { amount: true },
 	});
 	const othersSum = others.reduce((s, c) => s + (Number(c.amount) || 0), 0);
-	const b = await prisma.budget.findFirst({ where: { id: current.budgetId } });
+	const b = await prisma.budget.findFirst({
+		where: { id: current.budgetId },
+	});
 	if (!b) return;
 	if (othersSum + newAmount > b.income) {
 		const err = new Error("Сумма по категориям не может превышать доход");
@@ -248,7 +262,13 @@ export async function setCategoryAmount({ year, month, categoryId, amount, owner
 	});
 }
 
-export async function setCategorySaving({ year, month, categoryId, isSaving, ownerId }) {
+export async function setCategorySaving({
+	year,
+	month,
+	categoryId,
+	isSaving,
+	ownerId,
+}) {
 	await getOrCreateBudget(year, month, ownerId);
 	await prisma.category.update({
 		where: { id: categoryId },
@@ -308,7 +328,14 @@ export async function setCategoryRollover({
 	});
 }
 
-export async function addExpense({ year, month, categoryId, amount, note, ownerId }) {
+export async function addExpense({
+	year,
+	month,
+	categoryId,
+	amount,
+	note,
+	ownerId,
+}) {
 	const b = await getOrCreateBudget(year, month, ownerId);
 	await prisma.expense.create({
 		data: {
