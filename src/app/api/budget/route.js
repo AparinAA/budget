@@ -4,6 +4,7 @@ import {
 	setIncome,
 	addCategory,
 	removeCategory,
+	setCategoryName,
 	setCategoryAmount,
 	addExpense,
 	subtractExpense,
@@ -40,6 +41,9 @@ export async function POST(req) {
 				break;
 			case "removeCategory":
 				await removeCategory(payload);
+				break;
+			case "setCategoryName":
+				await setCategoryName(payload);
 				break;
 			case "setCategoryAmount":
 				await setCategoryAmount(payload);

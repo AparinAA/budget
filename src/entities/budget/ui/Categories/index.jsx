@@ -20,26 +20,30 @@ export function Categories({ onAfterChange }) {
 		ownerId,
 	} = useBudgetStore();
 
-	const allocated = useMemo(
-		() => {
-			const inc = Number(income) || 0;
-			return categories.map((c) => {
-				const amt = Number(c.amount) || 0;
-				const pct = inc > 0 ? Math.round((amt / inc) * 100) : 0;
-				return {
-					...c,
-					allocated: amt / 100,
-					remaining: Math.max(0, (amt - (c.spent || 0)) / 100),
-					percentOfIncome: pct,
-				};
-			});
-		},
-		[categories, income]
-	);
+	const allocated = useMemo(() => {
+		const inc = Number(income) || 0;
+		return categories.map((c) => {
+			const amt = Number(c.amount) || 0;
+			const pct = inc > 0 ? Math.round((amt / inc) * 100) : 0;
+			return {
+				...c,
+				allocated: amt / 100,
+				remaining: Math.max(0, (amt - (c.spent || 0)) / 100),
+				percentOfIncome: pct,
+			};
+		});
+	}, [categories, income]);
 
 	// Локальные правки для мгновенного отображения без ожидания сети
 	const [localEdits, setLocalEdits] = useState({}); // { [catId]: { percent?: string, isSaving?: boolean, rolloverEnabled?: boolean, rolloverTargetId?: string|null } }
-	const [expenseModal, setExpenseModal] = useState({ isOpen: false, categoryId: null, categoryName: "", category: null });
+	const [expenseModal, setExpenseModal] = useState({
+		isOpen: false,
+		categoryId: null,
+		categoryName: "",
+		category: null,
+	});
+	const [editingNameId, setEditingNameId] = useState(null); // ID категории, название которой редактируется
+	const [editingNameValue, setEditingNameValue] = useState(""); // Временное значение названия
 
 	useEffect(() => {
 		setLocalEdits((prev) => {
@@ -54,9 +58,57 @@ export function Categories({ onAfterChange }) {
 
 	// Рефы для дебаунса и отмены по полям
 	const percentRefs = useRef(new Map()); // id -> { t, controller }
+	const nameInputRef = useRef(null);
+
+	// Автофокус на поле редактирования названия
+	useEffect(() => {
+		if (editingNameId && nameInputRef.current) {
+			nameInputRef.current.focus();
+			nameInputRef.current.select();
+		}
+	}, [editingNameId]);
+
+	// Начать редактирование названия
+	const startEditingName = (categoryId, currentName) => {
+		setEditingNameId(categoryId);
+		setEditingNameValue(currentName);
+	};
+
+	// Сохранить новое название
+	const saveNewName = (categoryId) => {
+		const newName = editingNameValue.trim();
+		if (!newName) {
+			setEditingNameId(null);
+			return;
+		}
+		postAction("setCategoryName", {
+			year,
+			month,
+			categoryId,
+			name: newName,
+			ownerId: ownerId || null,
+		})
+			.then((snap) => {
+				setSnapshot(snap);
+				setEditingNameId(null);
+				onAfterChange?.();
+			})
+			.catch(() => {
+				setEditingNameId(null);
+			});
+	};
+
+	// Отменить редактирование
+	const cancelEditingName = () => {
+		setEditingNameId(null);
+		setEditingNameValue("");
+	};
 
 	return (
-		<section className={kit.card} style={{ background: "var(--bg-primary)" }}>
+		<section
+			className={kit.card}
+			style={{ background: "var(--bg-primary)" }}
+		>
 			<h3 className={kit.cardTitle}>Категории</h3>
 			<div style={{ display: "grid", gap: "var(--spacing-md)" }}>
 				{allocated.map((c, idx) => (
@@ -69,13 +121,51 @@ export function Categories({ onAfterChange }) {
 										background: COLORS[idx % COLORS.length],
 									}}
 								/>
-								<div className={styles.categoryName}>
-									{c.name}
-								</div>
+								{editingNameId === c.id ? (
+									<input
+										ref={nameInputRef}
+										type="text"
+										value={editingNameValue}
+										onChange={(e) =>
+											setEditingNameValue(e.target.value)
+										}
+										onBlur={() => saveNewName(c.id)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												saveNewName(c.id);
+											} else if (e.key === "Escape") {
+												cancelEditingName();
+											}
+										}}
+										className={kit.input}
+										style={{ flex: 1, minWidth: 0 }}
+									/>
+								) : (
+									<div
+										className={styles.categoryName}
+										onClick={() =>
+											startEditingName(c.id, c.name)
+										}
+										style={{ cursor: "pointer" }}
+										title="Нажмите, чтобы изменить название"
+									>
+										{c.name}
+									</div>
+								)}
 								<button
-									onClick={() => setExpenseModal({ isOpen: true, categoryId: c.id, categoryName: c.name, category: c })}
+									onClick={() =>
+										setExpenseModal({
+											isOpen: true,
+											categoryId: c.id,
+											categoryName: c.name,
+											category: c,
+										})
+									}
 									className={kit.button}
-									style={{ padding: "6px 10px", minHeight: "32px" }}
+									style={{
+										padding: "6px 10px",
+										minHeight: "32px",
+									}}
 									title="Управление категорией"
 								>
 									<MenuIcon size={14} />
@@ -95,14 +185,18 @@ export function Categories({ onAfterChange }) {
 											.catch(() => {})
 									}
 									className={`${kit.button} ${kit.buttonSecondary}`}
-									style={{ padding: "6px 10px", minHeight: "32px" }}
+									style={{
+										padding: "6px 10px",
+										minHeight: "32px",
+									}}
 									title="Удалить категорию"
 								>
 									<TrashIcon size={14} />
 								</button>
 							</div>
 							<div className={kit.label}>
-								Выделено: {currency(c.allocated, currencyCode)} · {c.percentOfIncome}% от дохода
+								Выделено: {currency(c.allocated, currencyCode)}{" "}
+								· {c.percentOfIncome}% от дохода
 							</div>
 							<div className={kit.label}>
 								Потрачено:{" "}
@@ -111,7 +205,10 @@ export function Categories({ onAfterChange }) {
 							{c.isSaving && (
 								<div style={{ color: "#57d9a3", fontSize: 13 }}>
 									К накоплению:{" "}
-									{currency((c.spent || 0) / 100, currencyCode)}
+									{currency(
+										(c.spent || 0) / 100,
+										currencyCode
+									)}
 								</div>
 							)}
 						</div>
@@ -135,21 +232,62 @@ export function Categories({ onAfterChange }) {
 								<input
 									type="number"
 									min="0"
-									value={localEdits[c.id]?.amount ?? String(Math.round((Number(c.amount)||0)/100))}
+									value={
+										localEdits[c.id]?.amount ??
+										String(
+											Math.round(
+												(Number(c.amount) || 0) / 100
+											)
+										)
+									}
 									onChange={(e) => {
 										const raw = e.target.value;
-										setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), amount: raw } }));
-										const cell = percentRefs.current.get(c.id) || { t: null, controller: null };
+										setLocalEdits((s) => ({
+											...s,
+											[c.id]: {
+												...(s[c.id] || {}),
+												amount: raw,
+											},
+										}));
+										const cell = percentRefs.current.get(
+											c.id
+										) || { t: null, controller: null };
 										if (cell.t) clearTimeout(cell.t);
-										if (cell.controller) cell.controller.abort();
-										const controller = new AbortController();
+										if (cell.controller)
+											cell.controller.abort();
+										const controller =
+											new AbortController();
 										cell.controller = controller;
-										const valueCents = Math.max(0, Math.floor(Number(raw) * 100 || 0));
+										const valueCents = Math.max(
+											0,
+											Math.floor(Number(raw) * 100 || 0)
+										);
 										cell.t = setTimeout(() => {
-											postAction("setCategoryAmount", { year, month, categoryId: c.id, amount: valueCents, ownerId: ownerId || null }, { signal: controller.signal })
-												.then((snap) => setSnapshot(snap))
+											postAction(
+												"setCategoryAmount",
+												{
+													year,
+													month,
+													categoryId: c.id,
+													amount: valueCents,
+													ownerId: ownerId || null,
+												},
+												{ signal: controller.signal }
+											)
+												.then((snap) =>
+													setSnapshot(snap)
+												)
 												.catch(() => {})
-												.finally(() => { cell.controller = null; setLocalEdits((s) => ({ ...s, [c.id]: { ...(s[c.id] || {}), amount: undefined } })); });
+												.finally(() => {
+													cell.controller = null;
+													setLocalEdits((s) => ({
+														...s,
+														[c.id]: {
+															...(s[c.id] || {}),
+															amount: undefined,
+														},
+													}));
+												});
 										}, 1000);
 										percentRefs.current.set(c.id, cell);
 									}}
@@ -179,7 +317,12 @@ export function Categories({ onAfterChange }) {
 			<ExpenseModal
 				isOpen={expenseModal.isOpen}
 				onClose={() => {
-					setExpenseModal({ isOpen: false, categoryId: null, categoryName: "", category: null });
+					setExpenseModal({
+						isOpen: false,
+						categoryId: null,
+						categoryName: "",
+						category: null,
+					});
 					onAfterChange?.();
 				}}
 				categoryId={expenseModal.categoryId}

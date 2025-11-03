@@ -45,6 +45,7 @@ model Category {
   id        String   @id @default(cuid())
   name      String
   amount    Int      // nominal in cents
+  sortOrder Int      @default(0) // Order for displaying categories
   isSaving  Boolean  @default(false)
   budget    Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
   budgetId  String

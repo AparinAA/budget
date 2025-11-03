@@ -40,12 +40,20 @@ export async function getOrCreateBudget(year, month, ownerId) {
 		create: { id: userId },
 	});
 	const defaults = [
-		{ name: "Обязательные траты (еда/дом.товары)", amount: 0 },
-		{ name: "Cafe/Wolt", amount: 0 },
-		{ name: "Личные расходы (одежда/гаджеты/медицина)", amount: 0 },
-		{ name: "Путешествия", amount: 0 },
-		{ name: "Аренда", amount: 0 },
-		{ name: "Ивестиции", amount: 0 },
+		{
+			name: "Обязательные траты (еда/дом.товары)",
+			amount: 0,
+			sortOrder: 0,
+		},
+		{ name: "Cafe/Wolt", amount: 0, sortOrder: 1 },
+		{
+			name: "Личные расходы (одежда/гаджеты/медицина)",
+			amount: 0,
+			sortOrder: 2,
+		},
+		{ name: "Путешествия", amount: 0, sortOrder: 3 },
+		{ name: "Аренда", amount: 0, sortOrder: 4 },
+		{ name: "Ивестиции", amount: 0, sortOrder: 5 },
 	];
 	const result = await prisma.budget.upsert({
 		where: {
@@ -209,7 +217,7 @@ export async function addCategory({ year, month, name, amount, ownerId }) {
 	// суммируем текущие суммы категорий
 	const existing = await prisma.category.findMany({
 		where: { budgetId: b.id },
-		select: { amount: true },
+		select: { amount: true, sortOrder: true },
 	});
 	const total = existing.reduce((s, c) => s + (Number(c.amount) || 0), 0);
 	if (total + a > b.income) {
@@ -217,8 +225,13 @@ export async function addCategory({ year, month, name, amount, ownerId }) {
 		err.status = 400;
 		throw err;
 	}
+	// Находим максимальный sortOrder и добавляем 1
+	const maxSortOrder =
+		existing.length > 0
+			? Math.max(...existing.map((c) => c.sortOrder || 0))
+			: -1;
 	await prisma.category.create({
-		data: { name, amount: a, budgetId: b.id },
+		data: { name, amount: a, budgetId: b.id, sortOrder: maxSortOrder + 1 },
 	});
 }
 
@@ -227,6 +240,25 @@ export async function removeCategory({ year, month, categoryId, ownerId }) {
 	await prisma.expense.deleteMany({ where: { categoryId } });
 	await prisma.savingsTransfer.deleteMany({ where: { categoryId } });
 	await prisma.category.delete({ where: { id: categoryId } });
+}
+
+export async function setCategoryName({
+	year,
+	month,
+	categoryId,
+	name,
+	ownerId,
+}) {
+	await getOrCreateBudget(year, month, ownerId);
+	if (!name || !name.trim()) {
+		const err = new Error("Название категории не может быть пустым");
+		err.status = 400;
+		throw err;
+	}
+	await prisma.category.update({
+		where: { id: categoryId },
+		data: { name: name.trim() },
+	});
 }
 
 export async function setCategoryAmount({
@@ -372,7 +404,7 @@ export async function getBudgetSnapshot(year, month, ownerId) {
 	const b = await getOrCreateBudget(year, month, ownerId);
 	const categories = await prisma.category.findMany({
 		where: { budgetId: b.id },
-		orderBy: { createdAt: "asc" },
+		orderBy: { sortOrder: "asc" },
 	});
 	const expenses = await prisma.expense.findMany({
 		where: { budgetId: b.id },
