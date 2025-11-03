@@ -400,6 +400,26 @@ export async function subtractExpense({
 	});
 }
 
+export async function getCategoryExpenses({
+	year,
+	month,
+	categoryId,
+	ownerId,
+}) {
+	await getOrCreateBudget(year, month, ownerId);
+	const expenses = await prisma.expense.findMany({
+		where: { categoryId },
+		orderBy: { createdAt: "desc" },
+		select: {
+			id: true,
+			amount: true,
+			note: true,
+			createdAt: true,
+		},
+	});
+	return expenses;
+}
+
 export async function getBudgetSnapshot(year, month, ownerId) {
 	const b = await getOrCreateBudget(year, month, ownerId);
 	const categories = await prisma.category.findMany({

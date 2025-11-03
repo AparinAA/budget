@@ -10,7 +10,8 @@ import {
 	useTelegramMainButtonState,
 	useCategorySettings,
 } from "./hooks";
-import { ModalHeader, CategoryControls, AmountInput } from "./components";
+import { CategoryControls, AmountInput } from "./components";
+import { ModalHeader } from "@/shared/ui/ModalHeader";
 
 export function ExpenseModal({
 	isOpen,
@@ -64,6 +65,18 @@ export function ExpenseModal({
 	useEffect(() => {
 		setIsTelegram(!!window.Telegram?.WebApp?.initData);
 	}, []);
+
+	// Блокировка скролла фона при открытии модального окна
+	useEffect(() => {
+		if (isOpen) {
+			document.body.style.overflow = "hidden";
+		} else {
+			document.body.style.overflow = "";
+		}
+		return () => {
+			document.body.style.overflow = "";
+		};
+	}, [isOpen]);
 
 	// Сброс валюты и типа операции при открытии
 	useEffect(() => {
@@ -158,8 +171,8 @@ export function ExpenseModal({
 		<div className={styles.backdrop} onClick={handleBackdropClick}>
 			<div className={styles.modal}>
 				<ModalHeader
-					categoryName={categoryName}
-					isSubmitting={isSubmitting}
+					title={categoryName}
+					disabled={isSubmitting}
 					onClose={onClose}
 				/>
 

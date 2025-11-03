@@ -7,7 +7,8 @@ import { currency } from "@/shared/lib/format";
 import { useBudgetStore } from "@/shared/store/budgetStore";
 import { postAction } from "@/shared/api/budget";
 import { ExpenseModal } from "@/shared/ui/ExpenseModal";
-import { MenuIcon, TrashIcon } from "@/shared/ui/icons";
+import { ExpensesListModal } from "@/shared/ui/ExpensesListModal";
+import { MenuIcon, TrashIcon, ListIcon } from "@/shared/ui/icons";
 
 export function Categories({ onAfterChange }) {
 	const {
@@ -41,6 +42,11 @@ export function Categories({ onAfterChange }) {
 		categoryId: null,
 		categoryName: "",
 		category: null,
+	});
+	const [expensesListModal, setExpensesListModal] = useState({
+		isOpen: false,
+		categoryId: null,
+		categoryName: "",
 	});
 	const [editingNameId, setEditingNameId] = useState(null); // ID категории, название которой редактируется
 	const [editingNameValue, setEditingNameValue] = useState(""); // Временное значение названия
@@ -152,6 +158,23 @@ export function Categories({ onAfterChange }) {
 										{c.name}
 									</div>
 								)}
+								<button
+									onClick={() =>
+										setExpensesListModal({
+											isOpen: true,
+											categoryId: c.id,
+											categoryName: c.name,
+										})
+									}
+									className={kit.button}
+									style={{
+										padding: "6px 10px",
+										minHeight: "32px",
+									}}
+									title="Журнал расходов"
+								>
+									<ListIcon size={14} />
+								</button>
 								<button
 									onClick={() =>
 										setExpenseModal({
@@ -328,6 +351,19 @@ export function Categories({ onAfterChange }) {
 				categoryId={expenseModal.categoryId}
 				categoryName={expenseModal.categoryName}
 				category={expenseModal.category}
+			/>
+
+			<ExpensesListModal
+				isOpen={expensesListModal.isOpen}
+				onClose={() => {
+					setExpensesListModal({
+						isOpen: false,
+						categoryId: null,
+						categoryName: "",
+					});
+				}}
+				categoryId={expensesListModal.categoryId}
+				categoryName={expensesListModal.categoryName}
 			/>
 		</section>
 	);
