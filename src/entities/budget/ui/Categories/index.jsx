@@ -8,6 +8,7 @@ import { useBudgetStore } from "@/shared/store/budgetStore";
 import { postAction } from "@/shared/api/budget";
 import { ExpenseModal } from "@/shared/ui/ExpenseModal";
 import { ExpensesListModal } from "@/shared/ui/ExpensesListModal";
+import ConfirmModal from "@/shared/ui/ConfirmModal";
 import { MenuIcon, TrashIcon, ListIcon } from "@/shared/ui/icons";
 
 export function Categories({ onAfterChange }) {
@@ -44,6 +45,11 @@ export function Categories({ onAfterChange }) {
 		category: null,
 	});
 	const [expensesListModal, setExpensesListModal] = useState({
+		isOpen: false,
+		categoryId: null,
+		categoryName: "",
+	});
+	const [confirmDelete, setConfirmDelete] = useState({
 		isOpen: false,
 		categoryId: null,
 		categoryName: "",
@@ -108,6 +114,33 @@ export function Categories({ onAfterChange }) {
 	const cancelEditingName = () => {
 		setEditingNameId(null);
 		setEditingNameValue("");
+	};
+
+	// Подтвердить удаление категории
+	const handleDeleteCategory = () => {
+		const { categoryId } = confirmDelete;
+		postAction("removeCategory", {
+			year,
+			month,
+			categoryId,
+			ownerId: ownerId || null,
+		})
+			.then((snap) => {
+				setSnapshot(snap);
+				setConfirmDelete({
+					isOpen: false,
+					categoryId: null,
+					categoryName: "",
+				});
+				onAfterChange?.();
+			})
+			.catch(() => {
+				setConfirmDelete({
+					isOpen: false,
+					categoryId: null,
+					categoryName: "",
+				});
+			});
 	};
 
 	return (
@@ -195,17 +228,11 @@ export function Categories({ onAfterChange }) {
 								</button>
 								<button
 									onClick={() =>
-										postAction("removeCategory", {
-											year,
-											month,
+										setConfirmDelete({
+											isOpen: true,
 											categoryId: c.id,
-											ownerId: ownerId || null,
+											categoryName: c.name,
 										})
-											.then((snap) => {
-												setSnapshot(snap);
-												onAfterChange?.();
-											})
-											.catch(() => {})
 									}
 									className={`${kit.button} ${kit.buttonSecondary}`}
 									style={{
@@ -364,6 +391,22 @@ export function Categories({ onAfterChange }) {
 				}}
 				categoryId={expensesListModal.categoryId}
 				categoryName={expensesListModal.categoryName}
+			/>
+
+			<ConfirmModal
+				isOpen={confirmDelete.isOpen}
+				onClose={() =>
+					setConfirmDelete({
+						isOpen: false,
+						categoryId: null,
+						categoryName: "",
+					})
+				}
+				onConfirm={handleDeleteCategory}
+				title="Удаление категории"
+				message={`Вы уверены, что хотите удалить категорию "${confirmDelete.categoryName}"? Все расходы в этой категории будут удалены.`}
+				confirmText="Удалить"
+				cancelText="Отменить"
 			/>
 		</section>
 	);
