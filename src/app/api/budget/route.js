@@ -6,6 +6,7 @@ import {
 	removeCategory,
 	setCategoryAmount,
 	addExpense,
+	subtractExpense,
 	setCurrency,
 } from "@/features/budget/server";
 import { requireUserId } from "@/shared/auth/session";
@@ -60,6 +61,9 @@ export async function POST(req) {
 			case "addExpense":
 				await addExpense(payload);
 				break;
+			case "subtractExpense":
+				await subtractExpense(payload);
+				break;
 			case "recalculateSavings":
 				// пересчёт накоплений выполнится в общем блоке ниже
 				break;
@@ -74,7 +78,11 @@ export async function POST(req) {
 			const { saveMonthlyStats } = await import(
 				"@/features/budget/server"
 			);
-			await saveMonthlyStats(payload.year, payload.month, payload?.ownerId || null);
+			await saveMonthlyStats(
+				payload.year,
+				payload.month,
+				payload?.ownerId || null
+			);
 		}
 		const { year, month, ownerId } = payload;
 		const snap = await getBudgetSnapshot(year, month, ownerId || null);

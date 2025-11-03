@@ -40,10 +40,12 @@ export async function getOrCreateBudget(year, month, ownerId) {
 		create: { id: userId },
 	});
 	const defaults = [
-		{ name: "Еда", amount: 0 },
+		{ name: "Обязательные траты (еда/дом.товары)", amount: 0 },
+		{ name: "Cafe/Wolt", amount: 0 },
+		{ name: "Личные расходы (одежда/гаджеты/медицина)", amount: 0 },
+		{ name: "Путешествия", amount: 0 },
 		{ name: "Аренда", amount: 0 },
-		{ name: "Транспорт", amount: 0 },
-		{ name: "Развлечения", amount: 0 },
+		{ name: "Ивестиции", amount: 0 },
 	];
 	const result = await prisma.budget.upsert({
 		where: {
@@ -340,6 +342,25 @@ export async function addExpense({
 	await prisma.expense.create({
 		data: {
 			amount: Math.max(0, Math.floor(amount)),
+			note,
+			categoryId,
+			budgetId: b.id,
+		},
+	});
+}
+
+export async function subtractExpense({
+	year,
+	month,
+	categoryId,
+	amount,
+	note,
+	ownerId,
+}) {
+	const b = await getOrCreateBudget(year, month, ownerId);
+	await prisma.expense.create({
+		data: {
+			amount: -Math.max(0, Math.floor(amount)),
 			note,
 			categoryId,
 			budgetId: b.id,

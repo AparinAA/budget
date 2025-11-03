@@ -4,16 +4,28 @@ import kit from "@/shared/ui/kit.module.css";
 import styles from "./styles.module.css";
 import { postAction } from "@/shared/api/budget";
 import { useBudgetStore } from "@/shared/store/budgetStore";
-import { useExchangeRates, useTelegramMainButton, useTelegramMainButtonState, useCategorySettings } from "./hooks";
+import {
+	useExchangeRates,
+	useTelegramMainButton,
+	useTelegramMainButtonState,
+	useCategorySettings,
+} from "./hooks";
 import { ModalHeader, CategoryControls, AmountInput } from "./components";
 
-export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, category }) {
+export function ExpenseModal({
+	isOpen,
+	onClose,
+	categoryId,
+	categoryName,
+	category,
+}) {
 	const { year, month, setSnapshot, ownerId, categories } = useBudgetStore();
 	const [amount, setAmount] = useState("");
 	const [error, setError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isTelegram, setIsTelegram] = useState(false);
 	const [selectedCurrency, setSelectedCurrency] = useState("RSD");
+	const [operationType, setOperationType] = useState("add"); // 'add' или 'subtract'
 
 	// Используем кастомные хуки
 	const { exchangeRates, loadingRates } = useExchangeRates(isOpen);
@@ -30,49 +42,60 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 	const amountRef = useRef(amount);
 	const selectedCurrencyRef = useRef(selectedCurrency);
 	const exchangeRatesRef = useRef(exchangeRates);
-	
+	const operationTypeRef = useRef(operationType);
+
 	useEffect(() => {
 		amountRef.current = amount;
 	}, [amount]);
-	
+
 	useEffect(() => {
 		selectedCurrencyRef.current = selectedCurrency;
 	}, [selectedCurrency]);
-	
+
 	useEffect(() => {
 		exchangeRatesRef.current = exchangeRates;
 	}, [exchangeRates]);
-	
+
+	useEffect(() => {
+		operationTypeRef.current = operationType;
+	}, [operationType]);
+
 	// Проверяем, запущено ли в Telegram Mini App
 	useEffect(() => {
 		setIsTelegram(!!window.Telegram?.WebApp?.initData);
 	}, []);
 
-	// Сброс валюты при открытии
+	// Сброс валюты и типа операции при открытии
 	useEffect(() => {
 		if (isOpen) {
 			setSelectedCurrency("RSD");
+			setOperationType("add");
 		}
 	}, [isOpen]);
 
 	// Функция для отправки расхода (стабильная с useCallback)
-	const submitExpense = useCallback(async (amountCents) => {
-		setIsSubmitting(true);
-		try {
-			const snap = await postAction("addExpense", {
-				year,
-				month,
-				categoryId,
-				amount: amountCents,
-				ownerId: ownerId || null,
-			});
-			setSnapshot(snap);
-			setAmount("");
-			onClose();
-		} finally {
-			setIsSubmitting(false);
-		}
-	}, [year, month, categoryId, ownerId, setSnapshot, onClose]);
+	const submitExpense = useCallback(
+		async (amountCents, opType) => {
+			setIsSubmitting(true);
+			try {
+				const action =
+					opType === "subtract" ? "subtractExpense" : "addExpense";
+				const snap = await postAction(action, {
+					year,
+					month,
+					categoryId,
+					amount: amountCents,
+					ownerId: ownerId || null,
+				});
+				setSnapshot(snap);
+				setAmount("");
+				onClose();
+			} finally {
+				setIsSubmitting(false);
+			}
+		},
+		[year, month, categoryId, ownerId, setSnapshot, onClose]
+	);
 
 	// Стабильная функция для установки ошибки
 	const handleSetError = useCallback((message) => {
@@ -86,6 +109,7 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 		amountRef,
 		selectedCurrencyRef,
 		exchangeRatesRef,
+		operationTypeRef,
 		onSubmit: submitExpense,
 		onError: handleSetError,
 	});
@@ -106,12 +130,16 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 		try {
 			// Конвертируем сумму в базовую валюту (EUR)
 			let convertedAmount = amountNum;
-			if (selectedCurrency !== "EUR" && exchangeRates && exchangeRates[selectedCurrency]) {
+			if (
+				selectedCurrency !== "EUR" &&
+				exchangeRates &&
+				exchangeRates[selectedCurrency]
+			) {
 				convertedAmount = amountNum / exchangeRates[selectedCurrency];
 			}
 
 			const amountCents = Math.round(convertedAmount * 100);
-			await submitExpense(amountCents);
+			await submitExpense(amountCents, operationType);
 		} catch (err) {
 			setError("Неверные параметры");
 			setIsSubmitting(false);
@@ -129,7 +157,7 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 	return (
 		<div className={styles.backdrop} onClick={handleBackdropClick}>
 			<div className={styles.modal}>
-				<ModalHeader 
+				<ModalHeader
 					categoryName={categoryName}
 					isSubmitting={isSubmitting}
 					onClose={onClose}
@@ -148,6 +176,25 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 				/>
 
 				<div className={styles.form}>
+					<div className={styles.operationTypeToggle}>
+						<button
+							type="button"
+							className={`${styles.toggleButton} ${operationType === "add" ? styles.active : ""}`}
+							onClick={() => setOperationType("add")}
+							disabled={isSubmitting}
+						>
+							+ Добавить расход
+						</button>
+						<button
+							type="button"
+							className={`${styles.toggleButton} ${operationType === "subtract" ? styles.active : ""}`}
+							onClick={() => setOperationType("subtract")}
+							disabled={isSubmitting}
+						>
+							− Вычесть сумму
+						</button>
+					</div>
+
 					<AmountInput
 						amount={amount}
 						selectedCurrency={selectedCurrency}
@@ -158,20 +205,33 @@ export function ExpenseModal({ isOpen, onClose, categoryId, categoryName, catego
 							setAmount(e.target.value);
 							setError("");
 						}}
-						onCurrencyChange={(e) => setSelectedCurrency(e.target.value)}
+						onCurrencyChange={(e) =>
+							setSelectedCurrency(e.target.value)
+						}
 					/>
 
 					{error && <div className={styles.error}>{error}</div>}
-					
+
 					{!isTelegram && (
 						<button
 							type="button"
 							onClick={handleAddExpense}
-							disabled={isSubmitting || !amount || Number(amount) <= 0}
+							disabled={
+								isSubmitting || !amount || Number(amount) <= 0
+							}
 							className={kit.button}
-							style={{ width: "100%", marginTop: "var(--spacing-md)" }}
+							style={{
+								width: "100%",
+								marginTop: "var(--spacing-md)",
+							}}
 						>
-							{isSubmitting ? "Добавление..." : "Добавить расход"}
+							{isSubmitting
+								? operationType === "subtract"
+									? "Вычитание..."
+									: "Добавление..."
+								: operationType === "subtract"
+									? "Вычесть сумму"
+									: "Добавить расход"}
 						</button>
 					)}
 				</div>

@@ -6,20 +6,28 @@ export function useTelegramMainButton({
 	amountRef,
 	selectedCurrencyRef,
 	exchangeRatesRef,
+	operationTypeRef,
 	onSubmit,
 	onError,
 }) {
 	// Стабилизируем функции через useCallback
-	const handleError = useCallback((message) => {
-		onError(message);
-		if (window.Telegram?.WebApp?.HapticFeedback) {
-			window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-		}
-	}, [onError]);
+	const handleError = useCallback(
+		(message) => {
+			onError(message);
+			if (window.Telegram?.WebApp?.HapticFeedback) {
+				window.Telegram.WebApp.HapticFeedback.notificationOccurred(
+					"error"
+				);
+			}
+		},
+		[onError]
+	);
 
 	const handleSuccess = useCallback(() => {
 		if (window.Telegram?.WebApp?.HapticFeedback) {
-			window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+			window.Telegram.WebApp.HapticFeedback.notificationOccurred(
+				"success"
+			);
 		}
 	}, []);
 
@@ -27,12 +35,13 @@ export function useTelegramMainButton({
 		if (!isOpen || !isTelegram) {
 			// Управляем скроллом для не-Telegram
 			if (isOpen) {
-				const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+				const scrollbarWidth =
+					window.innerWidth - document.documentElement.clientWidth;
 				document.body.style.overflow = "hidden";
 				if (scrollbarWidth > 0) {
 					document.body.style.paddingRight = `${scrollbarWidth}px`;
 				}
-				
+
 				return () => {
 					document.body.style.overflow = "";
 					document.body.style.paddingRight = "";
@@ -42,11 +51,12 @@ export function useTelegramMainButton({
 		}
 
 		// Получаем ширину scrollbar
-		const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-		
+		const scrollbarWidth =
+			window.innerWidth - document.documentElement.clientWidth;
+
 		// Блокируем скролл при открытии модалки
 		document.body.style.overflow = "hidden";
-		
+
 		// Компенсируем ширину scrollbar, чтобы избежать скачков
 		if (scrollbarWidth > 0) {
 			document.body.style.paddingRight = `${scrollbarWidth}px`;
@@ -55,9 +65,13 @@ export function useTelegramMainButton({
 		// Настраиваем Telegram MainButton
 		if (window.Telegram?.WebApp?.MainButton) {
 			const mainButton = window.Telegram.WebApp.MainButton;
-			mainButton.setText("Добавить расход");
+			const buttonText =
+				operationTypeRef?.current === "subtract"
+					? "Вычесть сумму"
+					: "Добавить расход";
+			mainButton.setText(buttonText);
 			mainButton.show();
-			
+
 			// Проверяем начальное состояние amount
 			const initialAmount = Number(amountRef.current);
 			if (!amountRef.current || !initialAmount || initialAmount <= 0) {
@@ -65,7 +79,7 @@ export function useTelegramMainButton({
 			} else {
 				mainButton.enable();
 			}
-			
+
 			// Обработчик клика
 			const handleMainButtonClick = () => {
 				const amountNum = Number(amountRef.current);
@@ -81,14 +95,19 @@ export function useTelegramMainButton({
 				let convertedAmount = amountNum;
 				const currentCurrency = selectedCurrencyRef.current;
 				const currentRates = exchangeRatesRef.current;
-				
-				if (currentCurrency !== "EUR" && currentRates && currentRates[currentCurrency]) {
+
+				if (
+					currentCurrency !== "EUR" &&
+					currentRates &&
+					currentRates[currentCurrency]
+				) {
 					convertedAmount = amountNum / currentRates[currentCurrency];
 				}
 
 				const amountCents = Math.round(convertedAmount * 100);
+				const opType = operationTypeRef?.current || "add";
 
-				onSubmit(amountCents)
+				onSubmit(amountCents, opType)
 					.then(() => {
 						handleSuccess();
 						mainButton.hideProgress();
@@ -121,11 +140,11 @@ export function useTelegramMainButton({
 export function useTelegramMainButtonState(isOpen, isTelegram, amount) {
 	useEffect(() => {
 		if (!isOpen || !isTelegram) return;
-		
+
 		if (window.Telegram?.WebApp?.MainButton) {
 			const mainButton = window.Telegram.WebApp.MainButton;
 			const amountNum = Number(amount);
-			
+
 			if (!amount || !amountNum || amountNum <= 0) {
 				mainButton.disable();
 			} else {
