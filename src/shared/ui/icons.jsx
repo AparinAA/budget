@@ -191,32 +191,43 @@ export function ListIcon({ size = 16, ...props }) {
 			xmlns="http://www.w3.org/2000/svg"
 			{...props}
 		>
+			{/* Обложка журнала */}
 			<rect
-				x="2"
-				y="3"
-				width="12"
-				height="2"
-				rx="0.5"
+				x="3"
+				y="2"
+				width="10"
+				height="12"
+				rx="1"
 				stroke="currentColor"
 				strokeWidth="1.2"
 			/>
-			<rect
-				x="2"
-				y="7"
-				width="12"
-				height="2"
-				rx="0.5"
+			{/* Линии текста */}
+			<line
+				x1="5"
+				y1="5"
+				x2="11"
+				y2="5"
 				stroke="currentColor"
-				strokeWidth="1.2"
+				strokeWidth="1"
+				strokeLinecap="round"
 			/>
-			<rect
-				x="2"
-				y="11"
-				width="12"
-				height="2"
-				rx="0.5"
+			<line
+				x1="5"
+				y1="7.5"
+				x2="11"
+				y2="7.5"
 				stroke="currentColor"
-				strokeWidth="1.2"
+				strokeWidth="1"
+				strokeLinecap="round"
+			/>
+			<line
+				x1="5"
+				y1="10"
+				x2="9"
+				y2="10"
+				stroke="currentColor"
+				strokeWidth="1"
+				strokeLinecap="round"
 			/>
 		</svg>
 	);

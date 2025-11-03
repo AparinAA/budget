@@ -160,23 +160,6 @@ export function Categories({ onAfterChange }) {
 								)}
 								<button
 									onClick={() =>
-										setExpensesListModal({
-											isOpen: true,
-											categoryId: c.id,
-											categoryName: c.name,
-										})
-									}
-									className={kit.button}
-									style={{
-										padding: "6px 10px",
-										minHeight: "32px",
-									}}
-									title="Журнал расходов"
-								>
-									<ListIcon size={14} />
-								</button>
-								<button
-									onClick={() =>
 										setExpenseModal({
 											isOpen: true,
 											categoryId: c.id,
@@ -192,6 +175,23 @@ export function Categories({ onAfterChange }) {
 									title="Управление категорией"
 								>
 									<MenuIcon size={14} />
+								</button>
+								<button
+									onClick={() =>
+										setExpensesListModal({
+											isOpen: true,
+											categoryId: c.id,
+											categoryName: c.name,
+										})
+									}
+									className={kit.button}
+									style={{
+										padding: "6px 10px",
+										minHeight: "32px",
+									}}
+									title="Журнал расходов"
+								>
+									<ListIcon size={14} />
 								</button>
 								<button
 									onClick={() =>
