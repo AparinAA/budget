@@ -20,7 +20,14 @@ export function ExpenseModal({
 	categoryName,
 	category,
 }) {
-	const { year, month, setSnapshot, ownerId, categories } = useBudgetStore();
+	const {
+		year,
+		month,
+		setSnapshot,
+		ownerId,
+		categories,
+		currency: baseCurrency,
+	} = useBudgetStore();
 	const [amount, setAmount] = useState("");
 	const [error, setError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,7 +36,11 @@ export function ExpenseModal({
 	const [operationType, setOperationType] = useState("add"); // 'add' или 'subtract'
 
 	// Используем кастомные хуки
-	const { exchangeRates, loadingRates } = useExchangeRates(isOpen);
+	const { exchangeRate, loadingRate } = useExchangeRates(
+		isOpen,
+		"EUR",
+		selectedCurrency
+	);
 	const {
 		isSaving,
 		rolloverEnabled,
@@ -42,7 +53,7 @@ export function ExpenseModal({
 	// Используем useRef для хранения актуального значения
 	const amountRef = useRef(amount);
 	const selectedCurrencyRef = useRef(selectedCurrency);
-	const exchangeRatesRef = useRef(exchangeRates);
+	const exchangeRateRef = useRef(exchangeRate);
 	const operationTypeRef = useRef(operationType);
 
 	useEffect(() => {
@@ -54,8 +65,8 @@ export function ExpenseModal({
 	}, [selectedCurrency]);
 
 	useEffect(() => {
-		exchangeRatesRef.current = exchangeRates;
-	}, [exchangeRates]);
+		exchangeRateRef.current = exchangeRate;
+	}, [exchangeRate]);
 
 	useEffect(() => {
 		operationTypeRef.current = operationType;
@@ -121,7 +132,7 @@ export function ExpenseModal({
 		isTelegram,
 		amountRef,
 		selectedCurrencyRef,
-		exchangeRatesRef,
+		exchangeRateRef,
 		operationTypeRef,
 		onSubmit: submitExpense,
 		onError: handleSetError,
@@ -141,15 +152,11 @@ export function ExpenseModal({
 		setError("");
 
 		try {
-			// Конвертируем сумму в базовую валюту (EUR)
-			let convertedAmount = amountNum;
-			if (
-				selectedCurrency !== "EUR" &&
-				exchangeRates &&
-				exchangeRates[selectedCurrency]
-			) {
-				convertedAmount = amountNum / exchangeRates[selectedCurrency];
-			}
+			// Конвертируем сумму в EUR (используем курс напрямую)
+			const convertedAmount =
+				selectedCurrency === "EUR"
+					? amountNum
+					: amountNum * (exchangeRate || 1);
 
 			const amountCents = Math.round(convertedAmount * 100);
 			await submitExpense(amountCents, operationType);
@@ -211,9 +218,10 @@ export function ExpenseModal({
 					<AmountInput
 						amount={amount}
 						selectedCurrency={selectedCurrency}
-						exchangeRates={exchangeRates}
+						baseCurrency={baseCurrency || "EUR"}
+						exchangeRate={exchangeRate}
 						isSubmitting={isSubmitting}
-						loadingRates={loadingRates}
+						loadingRate={loadingRate}
 						onAmountChange={(e) => {
 							setAmount(e.target.value);
 							setError("");

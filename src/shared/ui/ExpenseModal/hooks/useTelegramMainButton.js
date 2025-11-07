@@ -5,7 +5,7 @@ export function useTelegramMainButton({
 	isTelegram,
 	amountRef,
 	selectedCurrencyRef,
-	exchangeRatesRef,
+	exchangeRateRef,
 	operationTypeRef,
 	onSubmit,
 	onError,
@@ -91,18 +91,13 @@ export function useTelegramMainButton({
 				mainButton.showProgress();
 				mainButton.disable();
 
-				// Конвертируем сумму в базовую валюту (EUR)
-				let convertedAmount = amountNum;
+				// Конвертируем сумму в EUR (используем курс напрямую)
+				const currentRate = exchangeRateRef.current;
 				const currentCurrency = selectedCurrencyRef.current;
-				const currentRates = exchangeRatesRef.current;
-
-				if (
-					currentCurrency !== "EUR" &&
-					currentRates &&
-					currentRates[currentCurrency]
-				) {
-					convertedAmount = amountNum / currentRates[currentCurrency];
-				}
+				const convertedAmount =
+					currentCurrency === "EUR"
+						? amountNum
+						: amountNum * (currentRate || 1);
 
 				const amountCents = Math.round(convertedAmount * 100);
 				const opType = operationTypeRef?.current || "add";

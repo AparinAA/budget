@@ -3,61 +3,87 @@ import { useState, useEffect } from "react";
 const CACHE_KEY = "exchange_rates_cache";
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
-export function useExchangeRates(isOpen) {
-	const [exchangeRates, setExchangeRates] = useState(null);
-	const [loadingRates, setLoadingRates] = useState(false);
+// Дефолтные курсы валют к EUR (для предотвращения скачков UI)
+const DEFAULT_RATES = {
+	EUR: 1,
+	RSD: 0.00853, // 1 RSD ≈ 0.00853 EUR
+	USD: 0.92, // 1 USD ≈ 0.92 EUR
+	RUB: 0.0095, // 1 RUB ≈ 0.0095 EUR
+};
+
+// Функция для получения курса валюты в EUR через наш API
+async function fetchRate(from) {
+	// Если валюта EUR, курс всегда 1
+	if (from === "EUR") {
+		return 1;
+	}
+
+	const response = await fetch(`/api/exchange-rate?from=${from}`);
+
+	if (!response.ok) {
+		throw new Error(`Failed to fetch rate ${from} -> EUR`);
+	}
+
+	const result = await response.json();
+	return result.rate;
+}
+
+export function useExchangeRates(
+	isOpen,
+	baseCurrency = "EUR",
+	targetCurrency = "EUR"
+) {
+	const [exchangeRate, setExchangeRate] = useState(
+		DEFAULT_RATES[targetCurrency] || 1
+	);
+	const [loadingRate, setLoadingRate] = useState(false);
 
 	useEffect(() => {
 		if (!isOpen) return;
 
-		const fetchExchangeRates = async () => {
+		const fetchExchangeRate = async () => {
 			try {
+				// Создаем ключ кеша для валюты
+				const cacheKey = `${CACHE_KEY}_${targetCurrency}`;
+
 				// Проверяем кэш
-				const cached = localStorage.getItem(CACHE_KEY);
+				const cached = localStorage.getItem(cacheKey);
 				if (cached) {
 					const { data, timestamp } = JSON.parse(cached);
 					const now = Date.now();
-					
+
 					// Если кэш не протух, используем его
 					if (now - timestamp < CACHE_TTL) {
-						setExchangeRates(data);
+						setExchangeRate(data);
 						return;
 					}
 				}
 
-				// Делаем запрос к API
-				setLoadingRates(true);
-				const response = await fetch(
-					"https://api.fastforex.io/fetch-multi?from=EUR&to=EUR,RSD,USD,RUB&api_key=demo"
-				);
-				
-				if (!response.ok) {
-					throw new Error("Failed to fetch exchange rates");
-				}
+				// Делаем запрос к API (всегда конвертируем targetCurrency -> EUR)
+				setLoadingRate(true);
+				const rate = await fetchRate(targetCurrency);
 
-				const result = await response.json();
-				
 				// Сохраняем в кэш
 				localStorage.setItem(
-					CACHE_KEY,
+					cacheKey,
 					JSON.stringify({
-						data: result.results,
+						data: rate,
 						timestamp: Date.now(),
 					})
 				);
 
-				setExchangeRates(result.results);
+				setExchangeRate(rate);
 			} catch (err) {
-				console.error("Error fetching exchange rates:", err);
-				// Устанавливаем базовые курсы при ошибке
-				setExchangeRates({ EUR: 1, RSD: 117.175, USD: 1.16274, RUB: 100.5 });
+				console.error("Error fetching exchange rate:", err);
+				// Используем дефолтный курс при ошибке
+				setExchangeRate(DEFAULT_RATES[targetCurrency] || 1);
 			} finally {
-				setLoadingRates(false);
+				setLoadingRate(false);
 			}
 		};
 
-		fetchExchangeRates();
-	}, [isOpen]);
+		fetchExchangeRate();
+	}, [isOpen, targetCurrency]);
 
-	return { exchangeRates, loadingRates };
+	return { exchangeRate, loadingRate };
 }

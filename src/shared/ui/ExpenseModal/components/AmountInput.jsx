@@ -10,9 +10,10 @@ const CURRENCIES = [
 export function AmountInput({
 	amount,
 	selectedCurrency,
-	exchangeRates,
+	baseCurrency = "EUR",
+	exchangeRate,
 	isSubmitting,
-	loadingRates,
+	loadingRate,
 	onAmountChange,
 	onCurrencyChange,
 }) {
@@ -36,7 +37,7 @@ export function AmountInput({
 					value={selectedCurrency}
 					onChange={onCurrencyChange}
 					className={kit.input}
-					disabled={isSubmitting || loadingRates}
+					disabled={isSubmitting || loadingRate}
 					style={{ width: "100px" }}
 				>
 					{CURRENCIES.map((currency) => (
@@ -46,19 +47,28 @@ export function AmountInput({
 					))}
 				</select>
 			</div>
-			
-			{selectedCurrency !== "EUR" && exchangeRates && (
-				<div style={{ 
-					fontSize: 12, 
-					color: "var(--text-secondary)", 
-					marginTop: "var(--spacing-xs)" 
-				}}>
-					1 {selectedCurrency} = {(1 / (exchangeRates[selectedCurrency] || 1)).toFixed(4)} EUR
-					{amount && Number(amount) > 0 && (
-						<> • {amount} {selectedCurrency} ≈ {(Number(amount) / (exchangeRates[selectedCurrency] || 1)).toFixed(2)} EUR</>
-					)}
-				</div>
-			)}
+
+			{selectedCurrency !== "EUR" &&
+				exchangeRate &&
+				exchangeRate !== 1 && (
+					<div
+						style={{
+							fontSize: 12,
+							color: "var(--text-secondary)",
+							marginTop: "var(--spacing-xs)",
+						}}
+					>
+						1 EUR = {(1 / exchangeRate).toFixed(2)}{" "}
+						{selectedCurrency}
+						{amount && Number(amount) > 0 && (
+							<>
+								{" "}
+								• {amount} {selectedCurrency} ≈{" "}
+								{(Number(amount) * exchangeRate).toFixed(2)} EUR
+							</>
+						)}
+					</div>
+				)}
 		</>
 	);
 }
