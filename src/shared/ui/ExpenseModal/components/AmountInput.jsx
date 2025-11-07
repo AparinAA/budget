@@ -30,7 +30,6 @@ export function AmountInput({
 					placeholder="Введите сумму"
 					className={kit.input}
 					disabled={isSubmitting}
-					autoFocus
 					style={{ flex: 1 }}
 				/>
 				<select
